@@ -3,10 +3,10 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
-<title>School RP | Middle School Simulator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>School RP | Middle School Simulator</title>
     <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
 </head>
 <body>
 
@@ -16,40 +16,43 @@
 </header>
 
 <main>
-    
-<section class="dashboard-card" id="teacherSetup">
-    <h2>Teacher Profile Setup</h2>
-    <p>Set up your teaching position.</p>
 
-    <label for="teacherName">Teacher Name</label>
-    <input type="text" id="teacherName"
-           placeholder="Example: Mr. Smith">
+    <section class="dashboard-card" id="teacherSetup">
+        <h2>Teacher Profile Setup</h2>
+        <p>Set up your teaching position.</p>
 
-    <label for="teacherSubject">Subject</label>
-    <select id="teacherSubject">
-        <option value="Math">Mathematics</option>
-        <option value="ELA">English Language Arts</option>
-        <option value="Science">Science</option>
-        <option value="Social Studies">Social Studies</option>
-        <option value="Physical Education">Physical Education</option>
-        <option value="Art">Art</option>
-        <option value="Music">Music</option>
-    </select>
+        <label for="teacherName">Teacher Name</label>
+        <input
+            type="text"
+            id="teacherName"
+            placeholder="Example: Mr. Smith"
+        >
 
-    <label for="teacherGrade">Grade Level</label>
-    <select id="teacherGrade">
-        <option value="6">6th Grade</option>
-        <option value="7">7th Grade</option>
-        <option value="8">8th Grade</option>
-        <option value="6-8">Grades 6–8</option>
-    </select>
+        <label for="teacherSubject">Subject</label>
+        <select id="teacherSubject">
+            <option value="Math">Mathematics</option>
+            <option value="ELA">English Language Arts</option>
+            <option value="Science">Science</option>
+            <option value="Social Studies">Social Studies</option>
+            <option value="Physical Education">Physical Education</option>
+            <option value="Art">Art</option>
+            <option value="Music">Music</option>
+        </select>
 
-    <button type="button" id="saveTeacher">
-        Save Teacher Profile
-    </button>
+        <label for="teacherGrade">Grade Level</label>
+        <select id="teacherGrade">
+            <option value="6">6th Grade</option>
+            <option value="7">7th Grade</option>
+            <option value="8">8th Grade</option>
+            <option value="6-8">Grades 6–8</option>
+        </select>
 
-    <p id="profileMessage"></p>
-</section>
+        <button type="button" id="saveTeacher">
+            Save Teacher Profile
+        </button>
+
+        <p id="profileMessage" role="status"></p>
+    </section>
 
     <h2>Teacher Dashboard</h2>
     <p>Welcome back, Teacher!</p>
@@ -85,6 +88,7 @@
         <p>Start your teaching day and follow the bell schedule.</p>
         <button type="button">Start School Day</button>
     </section>
+
 </main>
 
 </body>
