@@ -1,0 +1,524 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Genesis | School RP Simulation</title>
+
+    <link rel="stylesheet" href="genesis.css">
+    <script src="genesis.js" defer></script>
+</head>
+
+<body>
+
+<!-- SIMULATION HEADER -->
+<div class="simulation-banner">
+    School RP Simulation — Fictional Student Records
+</div>
+
+<!-- GENESIS HEADER -->
+<header class="genesis-header">
+
+    <div class="header-left">
+        <h1>Genesis</h1>
+        <span>Student Information System</span>
+    </div>
+
+    <div class="header-right">
+        <span>Riverside Middle School</span>
+        <span>2026–2027</span>
+
+        <a href="index.html" class="return-button">
+            Return to School RP
+        </a>
+    </div>
+
+</header>
+
+<!-- MAIN NAVIGATION -->
+<nav class="main-nav" aria-label="Main navigation">
+
+    <button class="main-tab active" data-tab="studentData">
+        Student Data
+    </button>
+
+    <button class="main-tab" data-tab="registration">
+        Registration
+    </button>
+
+    <button class="main-tab" data-tab="scheduling">
+        Scheduling
+    </button>
+
+    <button class="main-tab" data-tab="grading">
+        Grading
+    </button>
+
+    <button class="main-tab" data-tab="attendance">
+        Attendance
+    </button>
+
+    <button class="main-tab" data-tab="calendar">
+        Calendar
+    </button>
+
+    <button class="main-tab" data-tab="setup">
+        Setup
+    </button>
+
+</nav>
+
+<!-- SECONDARY NAVIGATION -->
+<nav class="sub-nav" aria-label="Section navigation">
+
+    <button class="sub-tab active" data-subtab="daily">
+        Daily
+    </button>
+
+    <button class="sub-tab" data-subtab="notes">
+        Notes
+    </button>
+
+    <button class="sub-tab" data-subtab="reports">
+        Reports
+    </button>
+
+    <button class="sub-tab" data-subtab="seating">
+        Seating Chart
+    </button>
+
+</nav>
+
+<!-- PAGE CONTENT -->
+<main class="genesis-content">
+
+    <!-- TEACHER INFORMATION -->
+    <section class="info-panel">
+
+        <div class="info-row">
+            <div>
+                <strong>School:</strong>
+                Riverside Middle School
+            </div>
+
+            <div>
+                <strong>Teacher:</strong>
+                <span id="genesisTeacher">Teacher</span>
+            </div>
+
+            <div>
+                <strong>School Year:</strong>
+                2026–2027
+            </div>
+        </div>
+
+        <div class="info-row">
+
+            <div>
+                <strong>Homeroom:</strong>
+                100
+            </div>
+
+            <div>
+                <strong>Grade:</strong>
+                <span id="genesisGrade">6</span>
+            </div>
+
+            <div>
+                <strong>Subject:</strong>
+                <span id="genesisSubject">Mathematics</span>
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- ATTENDANCE PAGE -->
+    <section class="genesis-page active"
+             id="attendancePage">
+
+        <div class="section-title">
+            <h2>Daily Attendance</h2>
+            <span id="attendanceStatus">
+                Not Posted
+            </span>
+        </div>
+
+        <div class="toolbar">
+
+            <label for="attendanceDate">
+                Attendance Date:
+            </label>
+
+            <input type="date" id="attendanceDate">
+
+            <label for="homeroomSelect">
+                Homeroom:
+            </label>
+
+            <select id="homeroomSelect">
+                <option value="100">100</option>
+            </select>
+
+        </div>
+
+        <div class="table-wrapper">
+
+            <table class="genesis-table">
+
+                <thead>
+                    <tr>
+                        <th>Student ID</th>
+                        <th>Last Name</th>
+                        <th>First Name</th>
+                        <th>Yesterday</th>
+                        <th>Today</th>
+                        <th>Comment</th>
+                    </tr>
+                </thead>
+
+                <tbody id="attendanceTableBody">
+                    <tr>
+                        <td>10001</td>
+                        <td>Morgan</td>
+                        <td>Alex</td>
+                        <td>Present</td>
+                        <td>
+                            <select aria-label="Alex Morgan attendance">
+                                <option>Present</option>
+                                <option>Absent</option>
+                                <option>Tardy</option>
+                                <option>Excused</option>
+                            </select>
+                        </td>
+                        <td>
+                            <input type="text"
+                                   aria-label="Alex Morgan comment"
+                                   placeholder="Comment">
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>10002</td>
+                        <td>Lee</td>
+                        <td>Jordan</td>
+                        <td>Present</td>
+                        <td>
+                            <select aria-label="Jordan Lee attendance">
+                                <option>Present</option>
+                                <option>Absent</option>
+                                <option>Tardy</option>
+                                <option>Excused</option>
+                            </select>
+                        </td>
+                        <td>
+                            <input type="text"
+                                   aria-label="Jordan Lee comment"
+                                   placeholder="Comment">
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>10003</td>
+                        <td>Brooks</td>
+                        <td>Taylor</td>
+                        <td>Present</td>
+                        <td>
+                            <select aria-label="Taylor Brooks attendance">
+                                <option>Present</option>
+                                <option>Absent</option>
+                                <option>Tardy</option>
+                                <option>Excused</option>
+                            </select>
+                        </td>
+                        <td>
+                            <input type="text"
+                                   aria-label="Taylor Brooks comment"
+                                   placeholder="Comment">
+                        </td>
+                    </tr>
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <div class="attendance-actions">
+
+            <button id="postAttendance">
+                Post Attendance
+            </button>
+
+            <button id="clearAttendance">
+                Clear Changes
+            </button>
+
+            <p id="attendanceMessage" role="status"></p>
+
+        </div>
+
+    </section>
+
+    <!-- STUDENT DATA PAGE -->
+    <section class="genesis-page"
+             id="studentDataPage">
+
+        <div class="section-title">
+            <h2>Student Data</h2>
+        </div>
+
+        <div class="toolbar">
+            <label for="studentSearch">Student Search:</label>
+
+            <input type="search"
+                   id="studentSearch"
+                   placeholder="Search by name or ID">
+        </div>
+
+        <div class="table-wrapper">
+
+            <table class="genesis-table">
+
+                <thead>
+                    <tr>
+                        <th>Student ID</th>
+                        <th>Last Name</th>
+                        <th>First Name</th>
+                        <th>Grade</th>
+                        <th>Homeroom</th>
+                    </tr>
+                </thead>
+
+                <tbody id="studentTableBody">
+                    <tr>
+                        <td>10001</td>
+                        <td>Morgan</td>
+                        <td>Alex</td>
+                        <td>7</td>
+                        <td>100</td>
+                    </tr>
+
+                    <tr>
+                        <td>10002</td>
+                        <td>Lee</td>
+                        <td>Jordan</td>
+                        <td>7</td>
+                        <td>100</td>
+                    </tr>
+
+                    <tr>
+                        <td>10003</td>
+                        <td>Brooks</td>
+                        <td>Taylor</td>
+                        <td>7</td>
+                        <td>100</td>
+                    </tr>
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+    <!-- GRADING PAGE -->
+    <section class="genesis-page"
+             id="gradingPage">
+
+        <div class="section-title">
+            <h2>Gradebook</h2>
+        </div>
+
+        <div class="toolbar">
+
+            <label for="gradebookClass">
+                Class:
+            </label>
+
+            <select id="gradebookClass">
+                <option value="math7">
+                    Mathematics 7
+                </option>
+            </select>
+
+            <label for="markingPeriod">
+                Marking Period:
+            </label>
+
+            <select id="markingPeriod">
+                <option value="1">MP1</option>
+                <option value="2">MP2</option>
+                <option value="3">MP3</option>
+                <option value="4">MP4</option>
+            </select>
+
+        </div>
+
+        <div class="table-wrapper">
+
+            <table class="genesis-table">
+
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Homework</th>
+                        <th>Quizzes</th>
+                        <th>Tests</th>
+                        <th>Average</th>
+                    </tr>
+                </thead>
+
+                <tbody id="gradebookTableBody">
+                    <tr>
+                        <td>Alex Morgan</td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>—</td>
+                    </tr>
+
+                    <tr>
+                        <td>Jordan Lee</td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>—</td>
+                    </tr>
+
+                    <tr>
+                        <td>Taylor Brooks</td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>—</td>
+                    </tr>
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+    <!-- SCHEDULING PAGE -->
+    <section class="genesis-page"
+             id="schedulingPage">
+
+        <div class="section-title">
+            <h2>Teacher Schedule</h2>
+        </div>
+
+        <div class="table-wrapper">
+
+            <table class="genesis-table">
+
+                <thead>
+                    <tr>
+                        <th>Period</th>
+                        <th>Time</th>
+                        <th>Activity</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr>
+                        <td>Morning Prep</td>
+                        <td>7:15–8:00 AM</td>
+                        <td>Classroom Preparation</td>
+                    </tr>
+                    <tr>
+                        <td>Homeroom</td>
+                        <td>8:00–8:15 AM</td>
+                        <td>Attendance</td>
+                    </tr>
+                    <tr>
+                        <td>1</td>
+                        <td>8:20–9:05 AM</td>
+                        <td>Class</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>9:10–9:55 AM</td>
+                        <td>Class</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>10:00–10:45 AM</td>
+                        <td>Class</td>
+                    </tr>
+                    <tr>
+                        <td>4</td>
+                        <td>10:50–11:35 AM</td>
+                        <td>Planning</td>
+                    </tr>
+                    <tr>
+                        <td>Lunch</td>
+                        <td>11:40 AM–12:10 PM</td>
+                        <td>Lunch Break</td>
+                    </tr>
+                    <tr>
+                        <td>5</td>
+                        <td>12:15–1:00 PM</td>
+                        <td>Class</td>
+                    </tr>
+                    <tr>
+                        <td>6</td>
+                        <td>1:05–1:50 PM</td>
+                        <td>Class</td>
+                    </tr>
+                    <tr>
+                        <td>7</td>
+                        <td>1:55–2:40 PM</td>
+                        <td>Class</td>
+                    </tr>
+                    <tr>
+                        <td>Student Dismissal</td>
+                        <td>2:45 PM</td>
+                        <td>Students Dismissed</td>
+                    </tr>
+                    <tr>
+                        <td>After-School Prep</td>
+                        <td>2:50–3:50 PM</td>
+                        <td>Grading and Planning</td>
+                    </tr>
+                    <tr>
+                        <td>Teacher Dismissal</td>
+                        <td>3:50 PM</td>
+                        <td>End of Workday</td>
+                    </tr>
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+    <!-- OTHER MODULES -->
+    <section class="genesis-page" id="registrationPage">
+        <h2>Registration</h2>
+        <p>Student enrollment information will appear here.</p>
+    </section>
+
+    <section class="genesis-page" id="calendarPage">
+        <h2>School Calendar</h2>
+        <p>School events and important dates will appear here.</p>
+    </section>
+
+    <section class="genesis-page" id="setupPage">
+        <h2>System Setup</h2>
+        <p>Teacher and classroom settings will appear here.</p>
+    </section>
+
+</main>
+
+<footer class="genesis-footer">
+    School RP | Genesis-Inspired Simulation |
+    Riverside Middle School | 2026–2027
+</footer>
+
+</body>
+</html>
