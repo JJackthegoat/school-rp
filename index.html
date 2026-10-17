@@ -12,11 +12,12 @@
 
 <header>
     <h1>School RP</h1>
-    <h2>Middle School Teacher Portal</h2>
+    <h2>Riverside Middle School | Teacher Portal</h2>
 </header>
 
 <main>
 
+    <!-- TEACHER PROFILE -->
     <section class="dashboard-card" id="teacherSetup">
         <h2>Teacher Profile Setup</h2>
         <p>Set up your teaching position.</p>
@@ -54,39 +55,144 @@
         <p id="profileMessage" role="status"></p>
     </section>
 
+    <!-- DASHBOARD -->
     <h2>Teacher Dashboard</h2>
     <p>Welcome back, Teacher!</p>
 
+    <!-- SCHOOL INFORMATION -->
     <section class="dashboard-card">
         <h3>School Information</h3>
+
         <p><strong>School:</strong> Riverside Middle School</p>
         <p><strong>Grades:</strong> 6–8</p>
         <p><strong>School Year:</strong> 2026–2027</p>
         <p><strong>Status:</strong> Not Started</p>
     </section>
 
+    <!-- CLASSES -->
     <section class="dashboard-card">
         <h3>My Classes</h3>
         <p>View your teaching schedule and class rosters.</p>
         <button type="button">View Classes</button>
     </section>
 
+    <!-- ATTENDANCE -->
     <section class="dashboard-card">
         <h3>Attendance</h3>
         <p>Take daily attendance for your students.</p>
         <button type="button">Take Attendance</button>
     </section>
 
+    <!-- GRADEBOOK -->
     <section class="dashboard-card">
         <h3>Gradebook</h3>
         <p>Manage assignments, quizzes, and student grades.</p>
         <button type="button">Open Gradebook</button>
     </section>
 
-    <section class="dashboard-card">
+    <!-- SCHOOL DAY -->
+    <section class="dashboard-card" id="schoolDay">
         <h3>School Day</h3>
-        <p>Start your teaching day and follow the bell schedule.</p>
-        <button type="button">Start School Day</button>
+        <p>Follow your daily teaching schedule.</p>
+
+        <button type="button" id="startSchoolDay">
+            Start School Day
+        </button>
+
+        <p id="schoolDayStatus">Status: Not Started</p>
+
+        <h3>Daily Bell Schedule</h3>
+
+        <table border="1" cellpadding="10"
+               style="width:100%; border-collapse:collapse;">
+            <thead>
+                <tr>
+                    <th>Period</th>
+                    <th>Time</th>
+                    <th>Activity</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr>
+                    <td>Morning Prep</td>
+                    <td>7:15–8:00 AM</td>
+                    <td>Prepare Classroom & Lessons</td>
+                </tr>
+
+                <tr>
+                    <td>Homeroom</td>
+                    <td>8:00–8:15 AM</td>
+                    <td>Attendance</td>
+                </tr>
+
+                <tr>
+                    <td>Period 1</td>
+                    <td>8:20–9:05 AM</td>
+                    <td>Class</td>
+                </tr>
+
+                <tr>
+                    <td>Period 2</td>
+                    <td>9:10–9:55 AM</td>
+                    <td>Class</td>
+                </tr>
+
+                <tr>
+                    <td>Period 3</td>
+                    <td>10:00–10:45 AM</td>
+                    <td>Class</td>
+                </tr>
+
+                <tr>
+                    <td>Period 4</td>
+                    <td>10:50–11:35 AM</td>
+                    <td>Planning Period</td>
+                </tr>
+
+                <tr>
+                    <td>Lunch</td>
+                    <td>11:40 AM–12:10 PM</td>
+                    <td>Lunch Break</td>
+                </tr>
+
+                <tr>
+                    <td>Period 5</td>
+                    <td>12:15–1:00 PM</td>
+                    <td>Class</td>
+                </tr>
+
+                <tr>
+                    <td>Period 6</td>
+                    <td>1:05–1:50 PM</td>
+                    <td>Class</td>
+                </tr>
+
+                <tr>
+                    <td>Period 7</td>
+                    <td>1:55–2:40 PM</td>
+                    <td>Class</td>
+                </tr>
+
+                <tr>
+                    <td>Student Dismissal</td>
+                    <td>2:45 PM</td>
+                    <td>Students Leave School</td>
+                </tr>
+
+                <tr>
+                    <td>After-School Prep</td>
+                    <td>2:50–3:50 PM</td>
+                    <td>Grading, Planning & Classroom Tasks</td>
+                </tr>
+
+                <tr>
+                    <td>Teacher Dismissal</td>
+                    <td>3:50 PM</td>
+                    <td>End of Workday</td>
+                </tr>
+            </tbody>
+        </table>
     </section>
 
 </main>
