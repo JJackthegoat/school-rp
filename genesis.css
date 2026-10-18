@@ -1,0 +1,391 @@
+
+/* GENESIS-STYLE SCHOOL RP PORTAL */
+
+:root {
+    --primary: #285b99;
+    --primary-dark: #193e70;
+    --secondary: #347fc2;
+    --background: #f2f5f9;
+    --border: #d4dce7;
+    --text: #243247;
+    --white: #ffffff;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 14px;
+    background: var(--background);
+    color: var(--text);
+}
+
+/* SIMULATION BANNER */
+
+.simulation-banner {
+    background: #eaf2ff;
+    color: #244a7a;
+    padding: 7px 20px;
+    font-size: 12px;
+    text-align: center;
+    border-bottom: 1px solid #c9dcf5;
+}
+
+/* HEADER */
+
+.genesis-header {
+    background: white;
+    padding: 17px 25px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    border-bottom: 1px solid var(--border);
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.header-left h1 {
+    color: var(--primary);
+    font-size: 30px;
+    margin: 0;
+    letter-spacing: -1px;
+}
+
+.header-left span {
+    font-size: 12px;
+    color: #64748b;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    font-size: 13px;
+}
+
+.return-button {
+    background: var(--primary);
+    color: white;
+    padding: 9px 14px;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+}
+
+.return-button:hover {
+    background: var(--primary-dark);
+}
+
+/* MAIN NAVIGATION */
+
+.main-nav {
+    background: var(--primary);
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 0 15px;
+    min-height: 46px;
+}
+
+.main-tab {
+    background: transparent;
+    border: none;
+    color: white;
+    padding: 15px 18px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.main-tab:hover {
+    background: #3673b6;
+}
+
+.main-tab.active {
+    background: var(--primary-dark);
+    font-weight: bold;
+    box-shadow: inset 0 -3px 0 #ffcc65;
+}
+
+/* SECONDARY NAVIGATION */
+
+.sub-nav {
+    background: var(--secondary);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px;
+    padding: 6px 18px;
+}
+
+.sub-tab {
+    background: transparent;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 15px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.sub-tab:hover,
+.sub-tab.active {
+    background: rgba(255,255,255,0.2);
+}
+
+/* MAIN CONTENT */
+
+.genesis-content {
+    max-width: 1450px;
+    margin: 22px auto;
+    padding: 0 22px;
+    min-height: 65vh;
+}
+
+/* TEACHER INFORMATION */
+
+.info-panel {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 15px 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 15px;
+    padding: 7px 0;
+}
+
+.info-row + .info-row {
+    border-top: 1px solid #edf0f4;
+}
+
+/* PORTAL PAGES */
+
+.genesis-page {
+    display: none;
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    padding: 22px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 7px rgba(0,0,0,0.04);
+}
+
+.genesis-page.active {
+    display: block;
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 12px;
+    margin-bottom: 18px;
+}
+
+.section-title h2 {
+    margin: 0;
+    font-size: 21px;
+    color: var(--primary-dark);
+}
+
+#attendanceStatus {
+    background: #fff4db;
+    color: #8a5a00;
+    padding: 7px 12px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* TOOLBARS */
+
+.toolbar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    background: #f6f8fb;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    margin-bottom: 18px;
+}
+
+label {
+    font-weight: bold;
+    font-size: 13px;
+}
+
+input,
+select {
+    padding: 9px 11px;
+    border: 1px solid #c7d1df;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 13px;
+    background: white;
+    color: var(--text);
+}
+
+input:focus,
+select:focus {
+    outline: 2px solid #7db2e6;
+    outline-offset: 1px;
+}
+
+/* STUDENT TABLES */
+
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+}
+
+.genesis-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 13px;
+}
+
+.genesis-table thead {
+    background: #e7eef8;
+}
+
+.genesis-table th {
+    color: #234e81;
+    font-weight: bold;
+    padding: 12px;
+    border-bottom: 2px solid #b9cce3;
+    white-space: nowrap;
+}
+
+.genesis-table td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #e4e9f0;
+}
+
+.genesis-table tbody tr:nth-child(even) {
+    background: #f7f9fc;
+}
+
+.genesis-table tbody tr:hover {
+    background: #edf5ff;
+}
+
+.genesis-table td input {
+    width: 100%;
+    min-width: 120px;
+}
+
+.genesis-table td select {
+    min-width: 110px;
+}
+
+/* BUTTONS */
+
+.attendance-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.attendance-actions button {
+    border: 1px solid #b8c7d9;
+    background: #f1f5fa;
+    color: #25466e;
+    padding: 10px 17px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.attendance-actions button:hover {
+    background: #e1ebf7;
+}
+
+.attendance-actions #postAttendance {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+
+.attendance-actions #postAttendance:hover {
+    background: var(--primary-dark);
+}
+
+#attendanceMessage {
+    font-size: 13px;
+    color: #246b40;
+}
+
+/* FOOTER */
+
+.genesis-footer {
+    padding: 20px;
+    text-align: center;
+    color: #718096;
+    font-size: 12px;
+    border-top: 1px solid var(--border);
+}
+
+/* MOBILE SUPPORT */
+
+@media (max-width: 768px) {
+    .genesis-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .header-left,
+    .header-right {
+        flex-wrap: wrap;
+    }
+
+    .main-nav {
+        padding: 0 5px;
+    }
+
+    .main-tab {
+        padding: 12px 10px;
+    }
+
+    .genesis-content {
+        padding: 0 10px;
+    }
+
+    .genesis-page {
+        padding: 14px;
+    }
+
+    .info-row {
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .toolbar {
+        align-items: flex-start;
+    }
+
+    .section-title h2 {
+        font-size: 18px;
+    }
+}
