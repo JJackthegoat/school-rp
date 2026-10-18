@@ -1,0 +1,435 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Riverside Forms | School RP</title>
+
+  <link rel="stylesheet" href="forms.css">
+  <script src="forms.js" defer></script>
+</head>
+
+<body>
+
+  <!-- TOP HEADER -->
+  <header class="forms-header">
+
+    <div class="header-left">
+
+      <a href="classroom.html"
+         class="back-button"
+         title="Back to Classroom">
+        ←
+      </a>
+
+      <div class="forms-logo">▤</div>
+
+      <div class="form-header-info">
+        <input
+          type="text"
+          id="headerFormTitle"
+          value="Untitled quiz"
+          aria-label="Form name"
+        >
+
+        <span id="saveStatus">
+          All changes saved
+        </span>
+      </div>
+
+    </div>
+
+    <div class="header-right">
+
+      <button id="previewForm"
+              class="icon-button"
+              title="Preview">
+        ◉
+      </button>
+
+      <button id="themeButton"
+              class="icon-button"
+              title="Customize theme">
+        ◐
+      </button>
+
+      <button id="moreOptions"
+              class="icon-button"
+              title="More options">
+        ⋮
+      </button>
+
+      <button id="publishForm"
+              class="publish-button">
+        Publish
+      </button>
+
+      <div class="user-avatar">T</div>
+
+    </div>
+
+  </header>
+
+  <!-- MAIN FORM TABS -->
+  <nav class="forms-tabs">
+
+    <button
+      class="form-tab active"
+      data-tab="questions">
+      Questions
+    </button>
+
+    <button
+      class="form-tab"
+      data-tab="responses">
+      Responses
+      <span id="responseCount">0</span>
+    </button>
+
+    <button
+      class="form-tab"
+      data-tab="settings">
+      Settings
+    </button>
+
+  </nav>
+
+  <!-- FORM EDITOR -->
+  <main class="forms-main">
+
+    <!-- QUESTIONS TAB -->
+    <section
+      id="questionsView"
+      class="form-view active">
+
+      <!-- FORM TITLE CARD -->
+      <div class="form-title-card">
+
+        <input
+          type="text"
+          id="formTitle"
+          class="large-title-input"
+          value="Untitled quiz"
+          placeholder="Form title"
+        >
+
+        <textarea
+          id="formDescription"
+          placeholder="Form description"
+          rows="2"
+        ></textarea>
+
+      </div>
+
+      <!-- QUESTIONS CONTAINER -->
+      <div id="questionsContainer"></div>
+
+      <!-- EMPTY STATE -->
+      <div id="emptyQuestions"
+           class="empty-questions">
+
+        <h3>Start creating your quiz</h3>
+
+        <p>
+          Add questions using the toolbar on the right.
+        </p>
+
+        <button id="firstQuestionButton"
+                class="purple-button">
+          + Add question
+        </button>
+
+      </div>
+
+      <!-- FLOATING TOOLBAR -->
+      <aside class="question-toolbar"
+             aria-label="Question tools">
+
+        <button id="addQuestionButton"
+                title="Add question">
+          +
+        </button>
+
+        <button id="importQuestionButton"
+                title="Import questions">
+          ▣
+        </button>
+
+        <button id="addTitleButton"
+                title="Add title and description">
+          Tt
+        </button>
+
+        <button id="addImageButton"
+                title="Add image">
+          ▧
+        </button>
+
+        <button id="addVideoButton"
+                title="Add video">
+          ▶
+        </button>
+
+        <button id="addSectionButton"
+                title="Add section">
+          ▤
+        </button>
+
+      </aside>
+
+    </section>
+
+    <!-- RESPONSES TAB -->
+    <section
+      id="responsesView"
+      class="form-view">
+
+      <div class="responses-card">
+
+        <div class="responses-heading">
+          <h2>
+            <span id="responsesTotal">0</span>
+            responses
+          </h2>
+        </div>
+
+        <div class="responses-tabs">
+
+          <button class="response-tab active"
+                  data-response-tab="summary">
+            Summary
+          </button>
+
+          <button class="response-tab"
+                  data-response-tab="question">
+            Question
+          </button>
+
+          <button class="response-tab"
+                  data-response-tab="individual">
+            Individual
+          </button>
+
+        </div>
+
+        <div id="responsesContent">
+          <div class="empty-response-state">
+            <h3>No responses yet</h3>
+
+            <p>
+              Responses from fictional students
+              will appear here.
+            </p>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- SETTINGS TAB -->
+    <section
+      id="settingsView"
+      class="form-view">
+
+      <div class="settings-card">
+
+        <h2>Settings</h2>
+
+        <div class="settings-group">
+
+          <h3>Make this a quiz</h3>
+
+          <label class="setting-row">
+            <span>
+              <strong>Make this a quiz</strong>
+              <small>
+                Assign point values and correct answers.
+              </small>
+            </span>
+
+            <input
+              type="checkbox"
+              id="quizMode"
+              checked
+            >
+          </label>
+
+        </div>
+
+        <div class="settings-group">
+
+          <h3>Responses</h3>
+
+          <label class="setting-row">
+            <span>
+              <strong>Collect student names</strong>
+              <small>
+                Identify fictional student responses.
+              </small>
+            </span>
+
+            <input
+              type="checkbox"
+              id="collectNames"
+              checked
+            >
+          </label>
+
+          <label class="setting-row">
+            <span>
+              <strong>Limit to one response</strong>
+            </span>
+
+            <input
+              type="checkbox"
+              id="limitResponses"
+            >
+          </label>
+
+        </div>
+
+        <div class="settings-group">
+
+          <h3>Presentation</h3>
+
+          <label for="confirmationMessage">
+            Confirmation message
+          </label>
+
+          <textarea
+            id="confirmationMessage"
+            rows="3"
+          >Your response has been recorded.</textarea>
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- PREVIEW DIALOG -->
+  <dialog id="previewDialog"
+          class="forms-dialog wide-dialog">
+
+    <div class="dialog-heading">
+
+      <h2>Preview Quiz</h2>
+
+      <button id="closePreview"
+              class="icon-button">
+        ✕
+      </button>
+
+    </div>
+
+    <div id="previewContent"></div>
+
+  </dialog>
+
+  <!-- THEME DIALOG -->
+  <dialog id="themeDialog"
+          class="forms-dialog">
+
+    <div class="dialog-heading">
+
+      <h2>Theme</h2>
+
+      <button id="closeTheme"
+              class="icon-button">
+        ✕
+      </button>
+
+    </div>
+
+    <h3>Theme color</h3>
+
+    <div class="theme-colors">
+
+      <button class="theme-color"
+              data-color="#673ab7"
+              style="background:#673ab7"
+              title="Purple"></button>
+
+      <button class="theme-color"
+              data-color="#1a73e8"
+              style="background:#1a73e8"
+              title="Blue"></button>
+
+      <button class="theme-color"
+              data-color="#188038"
+              style="background:#188038"
+              title="Green"></button>
+
+      <button class="theme-color"
+              data-color="#d93025"
+              style="background:#d93025"
+              title="Red"></button>
+
+      <button class="theme-color"
+              data-color="#e8710a"
+              style="background:#e8710a"
+              title="Orange"></button>
+
+    </div>
+
+  </dialog>
+
+  <!-- PUBLISH DIALOG -->
+  <dialog id="publishDialog"
+          class="forms-dialog">
+
+    <div class="dialog-heading">
+
+      <h2>Publish Form</h2>
+
+      <button id="closePublish"
+              class="icon-button">
+        ✕
+      </button>
+
+    </div>
+
+    <p>
+      Publish this quiz in your Riverside
+      School RP simulation.
+    </p>
+
+    <label for="publishedLink">
+      Form link
+    </label>
+
+    <input
+      id="publishedLink"
+      type="text"
+      readonly
+    >
+
+    <div class="dialog-actions">
+
+      <button id="copyFormLink"
+              class="secondary-button">
+        Copy link
+      </button>
+
+      <button id="confirmPublish"
+              class="purple-button">
+        Publish
+      </button>
+
+    </div>
+
+  </dialog>
+
+  <!-- SIMULATION FOOTER -->
+  <footer class="simulation-footer">
+    Riverside Forms — Fictional School RP Simulation.
+    Not affiliated with Google.
+  </footer>
+
+</body>
+</html>
