@@ -1,1071 +1,1241 @@
 
-document.addEventListener("DOMContentLoaded", () => {
-    "use strict";
+document.addEventListener('DOMContentLoaded', () => {
+  'use strict';
 
-    const STORAGE_KEY = "schoolRP_classroom_v1";
-    const TEACHING_PERIODS = [1, 2, 3, 4, 6, 7];
+  const KEY = 'schoolRP_classroom_v1';
+  const PERIODS = [1, 2, 3, 4, 6, 7];
+  const $ = id => document.getElementById(id);
+  const $$ = selector => [...document.querySelectorAll(selector)];
 
-    const sampleStudents = [
-        { id: "10001", name: "Alex Morgan", grade: 7 },
-        { id: "10002", name: "Jordan Lee", grade: 7 },
-        { id: "10003", name: "Taylor Brooks", grade: 7 },
-        { id: "10004", name: "Casey Rivera", grade: 7 },
-        { id: "10005", name: "Morgan Davis", grade: 7 },
-        { id: "10006", name: "Avery Wilson", grade: 7 },
-        { id: "10007", name: "Riley Parker", grade: 7 },
-        { id: "10008", name: "Cameron Smith", grade: 7 },
-        { id: "10009", name: "Jamie Thompson", grade: 7 },
-        { id: "10010", name: "Quinn Johnson", grade: 7 },
-        { id: "10011", name: "Dakota Brown", grade: 7 },
-        { id: "10012", name: "Reese Taylor", grade: 7 }
-    ];
+  const students = [
+    ['10001', 'Alex Morgan'],
+    ['10002', 'Jordan Lee'],
+    ['10003', 'Taylor Brooks'],
+    ['10004', 'Casey Rivera'],
+    ['10005', 'Morgan Davis'],
+    ['10006', 'Avery Wilson'],
+    ['10007', 'Riley Parker'],
+    ['10008', 'Cameron Smith'],
+    ['10009', 'Jamie Thompson'],
+    ['10010', 'Quinn Johnson'],
+    ['10011', 'Dakota Brown'],
+    ['10012', 'Reese Taylor']
+  ].map(([id, name]) => ({ id, name, grade: 7 }));
 
-    const $ = id => document.getElementById(id);
-    const $$ = selector => [...document.querySelectorAll(selector)];
+  const esc = value => String(value ?? '').replace(
+    /[&<>"']/g,
+    ch => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    }[ch])
+  );
 
-    function escapeHTML(value) {
-        return String(value ?? "").replace(/[&<>"']/g, char => ({
-            "&": "&amp;",
-            "<": "&lt;",
-            ">": "&gt;",
-            '"': "&quot;",
-            "'": "&#39;"
-        })[char]);
+  const id = () =>
+    typeof crypto.randomUUID === 'function'
+      ? crypto.randomUUID()
+      : Date.now().toString(36) +
+        Math.random().toString(36).slice(2);
+
+  const profile = (() => {
+    try {
+      return JSON.parse(
+        localStorage.getItem('teacherProfile') || '{}'
+      ) || {};
+    } catch {
+      return {};
+    }
+  })();
+
+  const teacher =
+    profile.name || profile.teacherName || 'Teacher';
+
+  const subject =
+    profile.subject ||
+    profile.teacherSubject ||
+    'General Studies';
+
+  const grade =
+    profile.grade || profile.teacherGrade || '7';
+
+  let data;
+
+  try {
+    data = JSON.parse(localStorage.getItem(KEY));
+  } catch {
+    data = null;
+  }
+
+  if (!data || !Array.isArray(data.classes)) {
+    data = { classes: [] };
+  }
+
+  const save = () => {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(data));
+    } catch {
+      alert('Browser storage is full or unavailable.');
+    }
+  };
+
+  let currentClassId = null;
+  let editingWorkId = null;
+  let editingType = 'assignment';
+  let calendarDate = new Date();
+  let collapsedTopics = new Set();
+
+  const current = () =>
+    data.classes.find(c => c.id === currentClassId);
+
+  const getStudent = sid =>
+    students.find(s => s.id === sid);
+
+  const dateLabel = iso => {
+    if (!iso) return 'No due date';
+
+    const [y, m, d] = iso.split('-').map(Number);
+
+    return new Date(y, m - 1, d).toLocaleDateString(
+      'en-US',
+      {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      }
+    );
+  };
+
+  // SET UP SIX TEACHING PERIODS
+
+  let added = false;
+
+  PERIODS.forEach(period => {
+    const section = `Period ${period}`;
+
+    const exists = data.classes.some(c =>
+      String(c.section || '')
+        .trim()
+        .toLowerCase() === section.toLowerCase()
+    );
+
+    if (exists) return;
+
+    data.classes.push({
+      id: id(),
+      code: Math.random()
+        .toString(36)
+        .slice(2, 8)
+        .toUpperCase(),
+      name: `${subject} ${grade}`,
+      section,
+      room: '204',
+      subject,
+      students: [],
+      announcements: [],
+      work: [],
+      topics: [],
+      automatic: true
+    });
+
+    added = true;
+  });
+
+  data.classes.forEach(c => {
+    c.students ||= [];
+    c.announcements ||= [];
+    c.work ||= [];
+    c.topics ||= [];
+  });
+
+  if (added) save();
+
+  // TEACHER INFORMATION
+
+  $('teacherDisplay').textContent = teacher;
+  $('welcomeMessage').textContent =
+    `Welcome, ${teacher}`;
+
+  $('settingsTeacherName').textContent = teacher;
+  $('settingsTeacherSubject').textContent = subject;
+  $('settingsTeacherGrade').textContent = grade;
+
+  document.querySelector('.teacher-avatar')
+    .textContent = teacher.charAt(0).toUpperCase();
+
+  // PAGE NAVIGATION
+
+  function view(name) {
+    $$('.view').forEach(el => {
+      el.classList.toggle(
+        'active',
+        el.id === `${name}View`
+      );
+    });
+
+    $$('.nav-item[data-view]').forEach(el => {
+      el.classList.toggle(
+        'active',
+        el.dataset.view === name
+      );
+    });
+
+    const titles = {
+      home: 'Classroom',
+      classes: 'Teaching',
+      classDetail: current()?.name || 'Classroom',
+      assignmentEditor: 'Classwork',
+      calendar: 'Calendar',
+      todo: 'To Review',
+      settings: 'Settings'
+    };
+
+    $('pageTitle').textContent =
+      titles[name] || 'Classroom';
+
+    if (name === 'home' || name === 'classes') {
+      renderClasses();
     }
 
-    function makeId() {
-        return window.crypto?.randomUUID?.() ||
-            Date.now().toString(36) +
-            Math.random().toString(36).slice(2);
-    }
+    if (name === 'calendar') renderCalendar();
+    if (name === 'todo') renderReview();
+  }
 
-    function readTeacherProfile() {
-        try {
-            return JSON.parse(
-                localStorage.getItem("teacherProfile") || "{}"
-            ) || {};
-        } catch {
-            return {};
+  // CLASS CARDS
+
+  function renderClasses() {
+    const sorted = [...data.classes].sort((a, b) => {
+      const period = c =>
+        Number(
+          String(c.section || '')
+            .match(/Period\s*(\d+)/i)?.[1] || 99
+        );
+
+      return period(a) - period(b);
+    });
+
+    const cards = sorted.map(c => `
+      <article
+        class="class-card"
+        data-class-id="${esc(c.id)}"
+        role="button"
+        tabindex="0"
+      >
+        <div class="class-card-header">
+          <h3>${esc(c.name)}</h3>
+          <p>${esc(c.section)}</p>
+        </div>
+
+        <div class="class-card-body">
+          <p>${esc(c.subject)}</p>
+          <p class="muted">
+            Room ${esc(c.room || 'Not set')}
+            · ${c.students.length} students
+          </p>
+        </div>
+
+        <div class="class-card-footer">
+          Open class →
+        </div>
+      </article>
+    `).join('');
+
+    $('homeClassGrid').innerHTML = cards;
+    $('classGrid').innerHTML = cards;
+
+    $('sidebarClassList').innerHTML =
+      sorted.map(c => `
+        <button
+          class="sidebar-class"
+          data-class-id="${esc(c.id)}"
+        >
+          ${esc(c.name)} — ${esc(c.section)}
+        </button>
+      `).join('');
+
+    $$('[data-class-id]').forEach(el => {
+      const open = () => openClass(el.dataset.classId);
+
+      el.addEventListener('click', open);
+
+      el.addEventListener('keydown', e => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          open();
         }
-    }
+      });
+    });
+  }
 
-    function loadData() {
-        try {
-            const saved = JSON.parse(
-                localStorage.getItem(STORAGE_KEY)
-            );
+  // OPEN CLASS
 
-            if (saved && Array.isArray(saved.classes)) {
-                return saved;
+  function openClass(classId) {
+    currentClassId = classId;
+
+    const c = current();
+    if (!c) return;
+
+    $('classTitle').textContent = c.name;
+
+    $('classSubtitle').textContent =
+      `${c.section} · Room ${c.room || 'Not set'}`;
+
+    $('classCodeDisplay').textContent =
+      `Class code: ${c.code}`;
+
+    view('classDetail');
+    classTab('stream');
+  }
+
+  // CLASS TABS
+
+  function classTab(tab) {
+    $$('.class-tab').forEach(el => {
+      el.classList.toggle(
+        'active',
+        el.dataset.classTab === tab
+      );
+    });
+
+    $$('.class-panel').forEach(el => {
+      el.classList.toggle(
+        'active',
+        el.id === `${tab}Panel`
+      );
+    });
+
+    if (tab === 'stream') renderStream();
+    if (tab === 'classwork') renderClasswork();
+    if (tab === 'people') renderStudents();
+    if (tab === 'grades') renderGrades();
+  }
+
+  // STREAM
+
+  function renderStream() {
+    const c = current();
+    if (!c) return;
+
+    $('streamPosts').innerHTML =
+      c.announcements.length
+        ? [...c.announcements].reverse().map(p => `
+          <article class="stream-post">
+            <h3>Announcement</h3>
+            <small>${esc(p.date)}</small>
+            <p style="white-space:pre-wrap">
+              ${esc(p.text)}
+            </p>
+          </article>
+        `).join('')
+        : '<div class="empty-state">No announcements yet.</div>';
+
+    const upcoming = c.work
+      .filter(w => w.status !== 'draft' && w.dueDate)
+      .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
+      .slice(0, 5);
+
+    $('upcomingWork').innerHTML =
+      upcoming.length
+        ? upcoming.map(w => `
+          <p>
+            <strong>${esc(w.title)}</strong>
+            <br>
+            <small>
+              Due ${esc(dateLabel(w.dueDate))}
+            </small>
+          </p>
+        `).join('')
+        : '<p class="muted">No upcoming work.</p>';
+  }
+
+  // CLASSWORK TOPICS
+
+  function allTopics(c) {
+    if (!c) return [];
+
+    return [...new Set([
+      ...(c.topics || []),
+      ...c.work.map(w => w.topic).filter(Boolean)
+    ])];
+  }
+
+  // CLASSWORK LIST
+
+  function renderClasswork() {
+    const c = current();
+    if (!c) return;
+
+    const topics = allTopics(c);
+    const filter = $('classworkTopicFilter');
+    const previous = filter.value;
+
+    filter.innerHTML =
+      '<option value="all">All topics</option>' +
+      topics.map(t => `
+        <option value="${esc(t)}">
+          ${esc(t)}
+        </option>
+      `).join('');
+
+    filter.value =
+      topics.includes(previous) ? previous : 'all';
+
+    const shown =
+      filter.value === 'all'
+        ? c.work
+        : c.work.filter(
+            w => (w.topic || '') === filter.value
+          );
+
+    const workCard = w => `
+      <article class="work-item">
+        <h3>${esc(w.title || 'Untitled')}</h3>
+
+        <p>
+          ${esc(({
+            assignment: 'Assignment',
+            quiz: 'Quiz assignment',
+            question: 'Question',
+            material: 'Material'
+          })[w.type] || w.type)}
+          ·
+          ${esc(
+            w.status === 'draft'
+              ? 'Draft'
+              : 'Assigned'
+          )}
+          ·
+          ${esc(dateLabel(w.dueDate))}
+        </p>
+
+        <p>${esc(w.instructions || '')}</p>
+
+        <button
+          class="text-btn"
+          data-edit-work="${esc(w.id)}"
+        >
+          Edit
+        </button>
+
+        <button
+          class="text-btn"
+          data-grade-work="${esc(w.id)}"
+        >
+          Enter grades
+        </button>
+      </article>
+    `;
+
+    let html = '';
+
+    const groups =
+      filter.value === 'all'
+        ? topics
+        : topics.filter(t => t === filter.value);
+
+    groups.forEach(topic => {
+      const works =
+        shown.filter(w => w.topic === topic);
+
+      html += `
+        <section class="topic-section">
+
+          <div class="topic-header">
+            <h3>${esc(topic)}</h3>
+
+            <button
+              class="topic-toggle"
+              data-toggle-topic="${esc(topic)}"
+              aria-label="Expand or collapse topic"
+            >
+              ${collapsedTopics.has(topic) ? '⌄' : '⌃'}
+            </button>
+          </div>
+
+          <div class="topic-items ${
+            collapsedTopics.has(topic)
+              ? 'collapsed'
+              : ''
+          }">
+
+            ${
+              works.length
+                ? works.map(workCard).join('')
+                : '<p class="muted">No work in this topic yet.</p>'
             }
-        } catch (error) {
-            console.warn("Unable to load Classroom data.", error);
-        }
 
-        return { classes: [] };
-    }
+          </div>
 
-    let data = loadData();
-    let currentClassId = null;
-    let calendarDate = new Date();
-    let editingQuizId = null;
-
-    function saveData() {
-        try {
-            localStorage.setItem(
-                STORAGE_KEY,
-                JSON.stringify(data)
-            );
-        } catch {
-            alert("Unable to save Classroom data.");
-        }
-    }
-
-    function getClass() {
-        return data.classes.find(
-            item => item.id === currentClassId
-        );
-    }
-
-    function getStudent(id) {
-        return sampleStudents.find(
-            student => student.id === id
-        );
-    }
-
-    function formatDate(date) {
-        if (!date) return "No due date";
-
-        const [year, month, day] =
-            date.split("-").map(Number);
-
-        return new Date(
-            year, month - 1, day
-        ).toLocaleDateString();
-    }
-
-    function loadTeacher() {
-        const profile = readTeacherProfile();
-
-        const name =
-            profile.name ||
-            profile.teacherName ||
-            "Teacher";
-
-        const subject =
-            profile.subject ||
-            profile.teacherSubject ||
-            "Not Set";
-
-        const grade =
-            profile.grade ||
-            profile.teacherGrade ||
-            "Not Set";
-
-        $("teacherDisplay").textContent = name;
-        $("welcomeMessage").textContent =
-            `Welcome, ${name}`;
-
-        $("settingsTeacherName").textContent = name;
-        $("settingsTeacherSubject").textContent = subject;
-        $("settingsTeacherGrade").textContent = grade;
-
-        document.querySelector(".teacher-avatar")
-            .textContent = name.charAt(0).toUpperCase();
-    }
-
-    // =====================================
-    // AUTOMATIC TEACHING SCHEDULE
-    // =====================================
-
-    function setupTeachingSchedule() {
-        const profile = readTeacherProfile();
-
-        const subject =
-            profile.subject ||
-            profile.teacherSubject ||
-            "General Studies";
-
-        const grade =
-            profile.grade ||
-            profile.teacherGrade ||
-            "7";
-
-        let changed = false;
-
-        TEACHING_PERIODS.forEach(period => {
-            const section = `Period ${period}`;
-
-            // Match an existing class for this period,
-            // regardless of its subject or class name.
-            const exists = data.classes.some(c =>
-                String(c.section || "")
-                    .trim()
-                    .toLowerCase() === section.toLowerCase()
-            );
-
-            if (exists) return;
-
-            data.classes.push({
-                id: makeId(),
-                code: Math.random()
-                    .toString(36)
-                    .slice(2, 8)
-                    .toUpperCase(),
-                name: `${subject} ${grade}`,
-                section,
-                room: "204",
-                subject,
-                students: [],
-                announcements: [],
-                work: [],
-                automatic: true
-            });
-
-            changed = true;
-        });
-
-        if (changed) saveData();
-    }
-
-    // =====================================
-    // NAVIGATION
-    // =====================================
-
-    function showView(name) {
-        $$(".view").forEach(view => {
-            view.classList.toggle(
-                "active",
-                view.id === `${name}View`
-            );
-        });
-
-        $$(".nav-item").forEach(button => {
-            button.classList.toggle(
-                "active",
-                button.dataset.view === name
-            );
-        });
-
-        const titles = {
-            home: "Classroom Home",
-            classes: "My Classes",
-            classDetail: "Classroom",
-            calendar: "Calendar",
-            todo: "To Review",
-            settings: "Settings"
-        };
-
-        $("pageTitle").textContent =
-            titles[name] || "Classroom";
-
-        if (name === "home" || name === "classes") {
-            renderClasses();
-        }
-
-        if (name === "calendar") renderCalendar();
-        if (name === "todo") renderReview();
-    }
-
-    function showClassTab(tab) {
-        $$(".class-tab").forEach(button => {
-            button.classList.toggle(
-                "active",
-                button.dataset.classTab === tab
-            );
-        });
-
-        $$(".class-panel").forEach(panel => {
-            panel.classList.toggle(
-                "active",
-                panel.id === `${tab}Panel`
-            );
-        });
-
-        if (tab === "stream") renderStream();
-        if (tab === "classwork") renderClasswork();
-        if (tab === "people") renderStudents();
-        if (tab === "grades") renderGrades();
-    }
-
-    // =====================================
-    // CLASS CARDS
-    // =====================================
-
-    function renderClasses() {
-        const classes = [...data.classes].sort((a, b) => {
-            const getPeriod = c => {
-                const match = String(c.section || "")
-                    .match(/Period\s+(\d+)/i);
-
-                return match ? Number(match[1]) : 99;
-            };
-
-            return getPeriod(a) - getPeriod(b);
-        });
-
-        const html = classes.length
-            ? classes.map(c => `
-                <article class="class-card"
-                         data-class-id="${escapeHTML(c.id)}"
-                         role="button"
-                         tabindex="0">
-
-                    <div class="class-card-header">
-                        <h3>${escapeHTML(c.name)}</h3>
-                        <p>${escapeHTML(c.section)}</p>
-                    </div>
-
-                    <div class="class-card-body">
-                        <p>${escapeHTML(c.subject)}</p>
-
-                        <p class="muted">
-                            Room ${escapeHTML(c.room || "Not Set")}
-                            · ${c.students.length} students
-                        </p>
-                    </div>
-
-                    <div class="class-card-footer">
-                        Open Class →
-                    </div>
-                </article>
-            `).join("")
-            : `<div class="empty-state">
-                   <h3>No classes yet</h3>
-               </div>`;
-
-        $("homeClassGrid").innerHTML = html;
-        $("classGrid").innerHTML = html;
-
-        $("sidebarClassList").innerHTML = classes.map(c => `
-            <button class="sidebar-class"
-                    data-class-id="${escapeHTML(c.id)}">
-                ${escapeHTML(c.name)}
-                — ${escapeHTML(c.section)}
-            </button>
-        `).join("");
-
-        $$("[data-class-id]").forEach(element => {
-            const open = () =>
-                openClass(element.dataset.classId);
-
-            element.addEventListener("click", open);
-
-            element.addEventListener("keydown", event => {
-                if (
-                    event.key === "Enter" ||
-                    event.key === " "
-                ) {
-                    event.preventDefault();
-                    open();
-                }
-            });
-        });
-    }
-
-    function openClass(id) {
-        currentClassId = id;
-
-        const c = getClass();
-        if (!c) return;
-
-        $("classTitle").textContent = c.name;
-
-        $("classSubtitle").textContent =
-            `${c.section} · Room ${c.room || "Not Set"}`;
-
-        $("classCodeDisplay").textContent =
-            `Class Code: ${c.code}`;
-
-        showView("classDetail");
-        showClassTab("stream");
-        renderClass();
-    }
-
-    function renderClass() {
-        renderStream();
-        renderClasswork();
-        renderStudents();
-        renderGrades();
-    }
-
-    // =====================================
-    // ANNOUNCEMENTS / STREAM
-    // =====================================
-
-    function renderStream() {
-        const c = getClass();
-        if (!c) return;
-
-        const posts = c.announcements || [];
-
-        $("streamPosts").innerHTML = posts.length
-            ? [...posts].reverse().map(post => `
-                <article class="stream-post">
-                    <h3>Teacher Announcement</h3>
-                    <small>${escapeHTML(post.date)}</small>
-
-                    <p style="white-space:pre-wrap">
-                        ${escapeHTML(post.text)}
-                    </p>
-                </article>
-            `).join("")
-            : `<div class="empty-state">
-                   <p>No announcements yet.</p>
-               </div>`;
-
-        const upcoming = c.work
-            .filter(work => work.dueDate)
-            .sort((a, b) =>
-                a.dueDate.localeCompare(b.dueDate)
-            )
-            .slice(0, 5);
-
-        $("upcomingWork").innerHTML = upcoming.length
-            ? upcoming.map(work => `
-                <p>
-                    <strong>${escapeHTML(work.title)}</strong>
-                    <br>
-                    <small>
-                        Due ${escapeHTML(formatDate(work.dueDate))}
-                    </small>
-                </p>
-            `).join("")
-            : `<p class="muted">No upcoming work.</p>`;
-    }
-
-    $("postAnnouncement").addEventListener("click", () => {
-        const c = getClass();
-        const message =
-            $("announcementText").value.trim();
-
-        if (!c || !message) return;
-
-        c.announcements.push({
-            id: makeId(),
-            text: message,
-            date: new Date().toLocaleString()
-        });
-
-        saveData();
-
-        $("announcementText").value = "";
-        renderStream();
+        </section>
+      `;
     });
 
-    // =====================================
-    // CLASSWORK
-    // =====================================
+    const ungrouped =
+      shown.filter(w => !w.topic);
 
-    function renderClasswork() {
-        const c = getClass();
-        if (!c) return;
+    if (ungrouped.length) {
+      html += `
+        <section class="topic-section">
+          <div class="topic-header">
+            <h3>Without a topic</h3>
+          </div>
 
-        $("classworkList").innerHTML = c.work.length
-            ? [...c.work].reverse().map(work => `
-                <article class="work-item">
-
-                    <div class="work-topic">
-                        ${escapeHTML(work.topic || "General")}
-                    </div>
-
-                    <h3>${escapeHTML(work.title)}</h3>
-
-                    <p>
-                        ${escapeHTML(work.type.toUpperCase())}
-                        · ${Number(work.points) || 0} points
-                        · ${escapeHTML(formatDate(work.dueDate))}
-                    </p>
-
-                    <p style="white-space:pre-wrap">
-                        ${escapeHTML(work.instructions)}
-                    </p>
-
-                    ${work.questions?.length
-                        ? `<p>${work.questions.length}
-                             quiz questions</p>`
-                        : ""}
-
-                    <button class="text-btn"
-                            data-grade-work="${escapeHTML(work.id)}">
-                        Enter Grades →
-                    </button>
-
-                    ${work.type === "quiz"
-                        ? `<button class="text-btn"
-                                   data-edit-quiz="${escapeHTML(work.id)}">
-                               Edit Quiz
-                           </button>`
-                        : ""}
-                </article>
-            `).join("")
-            : `<div class="empty-state">
-                   <h3>No assignments yet</h3>
-                   <p>
-                       Create an assignment, quiz,
-                       or question.
-                   </p>
-               </div>`;
-
-        $$("[data-grade-work]").forEach(button => {
-            button.addEventListener("click", () => {
-                gradeAssignment(
-                    button.dataset.gradeWork
-                );
-            });
-        });
-
-        $$("[data-edit-quiz]").forEach(button => {
-            button.addEventListener("click", () => {
-                const work = c.work.find(
-                    item => item.id === button.dataset.editQuiz
-                );
-
-                if (work) openQuizBuilder(work);
-            });
-        });
+          ${ungrouped.map(workCard).join('')}
+        </section>
+      `;
     }
 
-    $("openCreateWork").addEventListener("click", () => {
-        $("createWorkDialog").showModal();
-    });
+    $('classworkList').innerHTML =
+      html || `
+        <div class="empty-state">
+          <h3>No classwork yet</h3>
+          <p>
+            Click Create to add an assignment or topic.
+          </p>
+        </div>
+      `;
 
-    $("cancelCreateWork").addEventListener("click", () => {
-        $("createWorkDialog").close();
-    });
+    $$('[data-toggle-topic]').forEach(b => {
+      b.onclick = () => {
+        const t = b.dataset.toggleTopic;
 
-    $("createWorkForm").addEventListener("submit", event => {
-        event.preventDefault();
-
-        const c = getClass();
-        if (!c) return;
-
-        const type = $("workType").value;
-        const title = $("workTitle").value.trim();
-
-        if (!title) return;
-
-        const work = {
-            id: makeId(),
-            type,
-            title,
-            instructions:
-                $("workInstructions").value.trim(),
-            points: Math.max(
-                0,
-                Number($("workPoints").value) || 0
-            ),
-            dueDate: $("workDueDate").value,
-            topic: $("workTopic").value.trim(),
-            grades: {},
-            questions: []
-        };
-
-        c.work.push(work);
-        saveData();
-
-        $("createWorkForm").reset();
-        $("createWorkDialog").close();
-
-        renderClass();
-
-        if (type === "quiz") {
-            openQuizBuilder(work);
-        }
-    });
-
-    // =====================================
-    // QUIZ BUILDER
-    // =====================================
-
-    function openQuizBuilder(work) {
-        editingQuizId = work.id;
-
-        $("quizTitle").value = work.title;
-        $("quizDescription").value =
-            work.instructions || "";
-
-        $("quizQuestions").innerHTML = "";
-
-        if (work.questions?.length) {
-            work.questions.forEach(addQuestion);
+        if (collapsedTopics.has(t)) {
+          collapsedTopics.delete(t);
         } else {
-            addQuestion();
+          collapsedTopics.add(t);
         }
-
-        $("quizBuilderDialog").showModal();
-    }
-
-    function addQuestion(question = {}) {
-        const wrapper = document.createElement("div");
-        wrapper.className = "quiz-question";
-
-        wrapper.innerHTML = `
-            <label>Question</label>
-
-            <input class="question-title"
-                   placeholder="Enter question"
-                   value="${escapeHTML(question.title || "")}"
-                   required>
-
-            <label>Question Type</label>
-
-            <select class="question-type">
-                <option value="multiple">
-                    Multiple Choice
-                </option>
-                <option value="short">
-                    Short Answer
-                </option>
-                <option value="truefalse">
-                    True / False
-                </option>
-            </select>
-
-            <label>Answer Choices (one per line)</label>
-
-            <textarea class="question-options"
-                      rows="4"
-                      placeholder="Option A&#10;Option B&#10;Option C">${escapeHTML(
-                          (question.options || []).join("\n")
-                      )}</textarea>
-
-            <label>Correct Answer</label>
-
-            <input class="question-answer"
-                   value="${escapeHTML(question.answer || "")}">
-
-            <label>Points</label>
-
-            <input class="question-points"
-                   type="number"
-                   min="0"
-                   value="${Number(question.points) || 10}">
-
-            <button type="button"
-                    class="remove-question text-btn">
-                Remove Question
-            </button>
-        `;
-
-        wrapper.querySelector(".question-type").value =
-            question.type || "multiple";
-
-        wrapper.querySelector(".remove-question")
-            .addEventListener("click", () => {
-                wrapper.remove();
-            });
-
-        $("quizQuestions").appendChild(wrapper);
-    }
-
-    $("addQuizQuestion").addEventListener("click", () => {
-        addQuestion();
-    });
-
-    $("cancelQuizBuilder").addEventListener("click", () => {
-        $("quizBuilderDialog").close();
-    });
-
-    $("quizBuilderForm").addEventListener("submit", event => {
-        event.preventDefault();
-
-        const c = getClass();
-
-        const work = c?.work.find(
-            item => item.id === editingQuizId
-        );
-
-        if (!work) return;
-
-        const questions = $$(".quiz-question").map(element => ({
-            id: makeId(),
-            title: element.querySelector(".question-title")
-                .value.trim(),
-            type: element.querySelector(".question-type")
-                .value,
-            options: element.querySelector(".question-options")
-                .value.split("\n")
-                .map(option => option.trim())
-                .filter(Boolean),
-            answer: element.querySelector(".question-answer")
-                .value.trim(),
-            points: Math.max(
-                0,
-                Number(
-                    element.querySelector(".question-points").value
-                ) || 0
-            )
-        }));
-
-        if (questions.some(question => !question.title)) {
-            alert("Every question needs a title.");
-            return;
-        }
-
-        work.title = $("quizTitle").value.trim();
-        work.instructions =
-            $("quizDescription").value.trim();
-        work.questions = questions;
-
-        work.points = questions.reduce(
-            (sum, question) => sum + question.points,
-            0
-        );
-
-        saveData();
-
-        $("quizBuilderDialog").close();
 
         renderClasswork();
-        renderStream();
+      };
     });
 
-    // =====================================
-    // STUDENTS
-    // =====================================
-
-    function renderStudents() {
-        const c = getClass();
-        if (!c) return;
-
-        $("classStudentList").innerHTML = c.students.length
-            ? c.students.map(id => {
-                const student = getStudent(id);
-                if (!student) return "";
-
-                return `
-                    <tr>
-                        <td>${escapeHTML(student.name)}</td>
-                        <td>${escapeHTML(student.id)}</td>
-                        <td>${student.grade}</td>
-                    </tr>
-                `;
-            }).join("")
-            : `<tr>
-                   <td colspan="3">
-                       No students enrolled.
-                   </td>
-               </tr>`;
-    }
-
-    $("addStudentsButton").addEventListener("click", () => {
-        const c = getClass();
-        if (!c) return;
-
-        $("availableStudents").innerHTML =
-            sampleStudents.map(student => `
-                <label style="display:block;padding:9px">
-                    <input type="checkbox"
-                           class="student-checkbox"
-                           value="${student.id}"
-                           ${c.students.includes(student.id)
-                               ? "checked" : ""}>
-
-                    ${escapeHTML(student.name)}
-                    (${student.id})
-                </label>
-            `).join("");
-
-        $("addStudentsDialog").showModal();
-    });
-
-    $("closeAddStudents").addEventListener("click", () => {
-        $("addStudentsDialog").close();
-    });
-
-    $("saveClassStudents").addEventListener("click", () => {
-        const c = getClass();
-        if (!c) return;
-
-        c.students = $$(".student-checkbox:checked")
-            .map(checkbox => checkbox.value);
-
-        saveData();
-
-        $("addStudentsDialog").close();
-
-        renderStudents();
-        renderGrades();
-        renderClasses();
-    });
-
-    // =====================================
-    // GRADES
-    // =====================================
-
-    function renderGrades() {
-        const c = getClass();
-        if (!c) return;
-
-        $("classGradesBody").innerHTML = c.students.length
-            ? c.students.map(id => {
-                const student = getStudent(id);
-                if (!student) return "";
-
-                let earned = 0;
-                let possible = 0;
-                let graded = 0;
-
-                c.work.forEach(work => {
-                    const score = work.grades?.[id];
-
-                    if (
-                        score !== undefined &&
-                        score !== null
-                    ) {
-                        earned += Number(score);
-                        possible += Number(work.points);
-                        graded++;
-                    }
-                });
-
-                const average = possible > 0
-                    ? `${Math.round(
-                        earned / possible * 100
-                    )}%`
-                    : "Not Graded";
-
-                return `
-                    <tr>
-                        <td>${escapeHTML(student.name)}</td>
-                        <td>${graded} graded</td>
-                        <td>${average}</td>
-                    </tr>
-                `;
-            }).join("")
-            : `<tr>
-                   <td colspan="3">
-                       No students enrolled.
-                   </td>
-               </tr>`;
-    }
-
-    function gradeAssignment(workId) {
-        const c = getClass();
-
-        const work = c?.work.find(
-            item => item.id === workId
+    $$('[data-edit-work]').forEach(b => {
+      b.onclick = () => {
+        const work = current().work.find(
+          w => w.id === b.dataset.editWork
         );
 
-        if (!work) return;
+        openEditor(work);
+      };
+    });
 
-        if (!c.students.length) {
-            alert("Add students to this class first.");
-            return;
-        }
+    $$('[data-grade-work]').forEach(b => {
+      b.onclick = () =>
+        gradeAssignment(b.dataset.gradeWork);
+    });
+  }
 
-        work.grades ||= {};
+  // ASSIGNMENT EDITOR OPTIONS
 
-        for (const id of c.students) {
-            const student = getStudent(id);
-            if (!student) continue;
+  function editorOptions() {
+    $('editorAssignmentClass').innerHTML =
+      data.classes.map(c => `
+        <option value="${esc(c.id)}">
+          ${esc(c.name)} — ${esc(c.section)}
+        </option>
+      `).join('');
 
-            const previous = work.grades[id] ?? "";
+    $('editorAssignmentClass').value =
+      currentClassId;
 
-            const answer = prompt(
-                `${work.title}\n` +
-                `${student.name}\n` +
-                `Score out of ${work.points}`,
-                previous
-            );
+    $('editorAssignmentTopic').innerHTML =
+      '<option value="">No topic</option>' +
+      allTopics(current()).map(t => `
+        <option value="${esc(t)}">
+          ${esc(t)}
+        </option>
+      `).join('');
+  }
 
-            if (answer === null) break;
-            if (answer.trim() === "") continue;
+  // OPEN FULL-PAGE EDITOR
 
-            const score = Number(answer);
+  function openEditor(work = null, type = 'assignment') {
+    const c = current();
+    if (!c) return;
+
+    editingWorkId = work?.id || null;
+    editingType = work?.type || type;
+
+    editorOptions();
+
+    const typeNames = {
+      assignment: 'Assignment',
+      quiz: 'Quiz assignment',
+      question: 'Question',
+      material: 'Material'
+    };
+
+    $('assignmentEditorHeading').textContent =
+      typeNames[editingType] || 'Assignment';
+
+    $('editorAssignmentTitle').value =
+      work?.title || '';
+
+    $('editorAssignmentInstructions').value =
+      work?.instructions || '';
+
+    $('editorAssignmentPoints').value =
+      work?.points ??
+      (editingType === 'material' ? 0 : 100);
+
+    $('editorAssignmentDueDate').value =
+      work?.dueDate || '';
+
+    $('editorAssignmentTopic').value =
+      work?.topic || '';
+
+    $('editorAssignmentCategory').value =
+      editingType;
+
+    $('assignmentAttachments').innerHTML =
+      (work?.attachments || []).map(a => `
+        <p>
+          🔗
+          <a
+            href="${esc(a.url)}"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            ${esc(a.label || a.url)}
+          </a>
+        </p>
+      `).join('');
+
+    $('assignmentSaveStatus').textContent =
+      work
+        ? (
+            work.status === 'draft'
+              ? 'Draft'
+              : 'Assigned'
+          )
+        : 'Unsaved changes';
+
+    view('assignmentEditor');
+  }
+
+  // SAVE ASSIGNMENT
+
+  function saveEditor(status) {
+    const title =
+      $('editorAssignmentTitle').value.trim();
+
+    if (!title) {
+      alert('Enter an assignment title.');
+      $('editorAssignmentTitle').focus();
+      return;
+    }
+
+    const source = current();
+    if (!source) return;
+
+    const target =
+      data.classes.find(
+        c => c.id === $('editorAssignmentClass').value
+      ) || source;
+
+    let work = source.work.find(
+      w => w.id === editingWorkId
+    );
+
+    if (!work) {
+      work = {
+        id: id(),
+        grades: {},
+        questions: [],
+        attachments: []
+      };
+
+      target.work.push(work);
+    } else if (target.id !== source.id) {
+      source.work = source.work.filter(
+        w => w.id !== work.id
+      );
+
+      target.work.push(work);
+    }
+
+    Object.assign(work, {
+      title,
+      instructions:
+        $('editorAssignmentInstructions').value.trim(),
+      points: Math.max(
+        0,
+        Number($('editorAssignmentPoints').value) || 0
+      ),
+      dueDate: $('editorAssignmentDueDate').value,
+      topic: $('editorAssignmentTopic').value,
+      type: $('editorAssignmentCategory').value,
+      status
+    });
+
+    save();
+
+    currentClassId = target.id;
+
+    openClass(target.id);
+    classTab('classwork');
+  }
+
+  // STUDENT ROSTER
+
+  function renderStudents() {
+    const c = current();
+    if (!c) return;
+
+    $('classStudentList').innerHTML =
+      c.students.map(sid => {
+        const s = getStudent(sid);
+        if (!s) return '';
+
+        return `
+          <tr>
+            <td>${esc(s.name)}</td>
+            <td>${esc(s.id)}</td>
+            <td>${s.grade}</td>
+          </tr>
+        `;
+      }).join('') ||
+      '<tr><td colspan="3">No students enrolled.</td></tr>';
+  }
+
+  // GRADES
+
+  function renderGrades() {
+    const c = current();
+    if (!c) return;
+
+    $('classGradesBody').innerHTML =
+      c.students.map(sid => {
+        const s = getStudent(sid);
+        if (!s) return '';
+
+        let earned = 0;
+        let possible = 0;
+        let count = 0;
+
+        c.work
+          .filter(w => w.status !== 'draft')
+          .forEach(w => {
+            const score = w.grades?.[sid];
 
             if (
-                !Number.isFinite(score) ||
-                score < 0 ||
-                score > Number(work.points)
+              score !== undefined &&
+              score !== null
             ) {
-                alert("Invalid score. Skipping student.");
-                continue;
+              earned += Number(score);
+              possible += Number(w.points) || 0;
+              count++;
             }
+          });
 
-            work.grades[id] = score;
-        }
+        return `
+          <tr>
+            <td>${esc(s.name)}</td>
+            <td>${count} graded</td>
+            <td>
+              ${
+                possible
+                  ? Math.round(
+                      earned / possible * 100
+                    ) + '%'
+                  : 'Not graded'
+              }
+            </td>
+          </tr>
+        `;
+      }).join('') ||
+      '<tr><td colspan="3">No students enrolled.</td></tr>';
+  }
 
-        saveData();
-        renderGrades();
-        renderClasswork();
+  // ENTER STUDENT GRADES
+
+  function gradeAssignment(workId) {
+    const c = current();
+
+    const w = c?.work.find(
+      w => w.id === workId
+    );
+
+    if (!w) return;
+
+    if (!c.students.length) {
+      alert('Add students to the class first.');
+      return;
     }
 
-    // =====================================
-    // CALENDAR
-    // =====================================
+    w.grades ||= {};
 
-    function renderCalendar() {
-        const year = calendarDate.getFullYear();
-        const month = calendarDate.getMonth();
+    for (const sid of c.students) {
+      const s = getStudent(sid);
+      if (!s) continue;
 
-        $("calendarMonth").textContent =
-            calendarDate.toLocaleDateString("en-US", {
-                month: "long",
-                year: "numeric"
-            });
+      const value = prompt(
+        `${w.title}\n${s.name}\nScore out of ${w.points} (Cancel to stop):`,
+        w.grades[sid] ?? ''
+      );
 
-        const firstDay =
-            new Date(year, month, 1).getDay();
+      if (value === null) break;
+      if (value.trim() === '') continue;
 
-        const days =
-            new Date(year, month + 1, 0).getDate();
+      const score = Number(value);
 
-        const today = new Date();
+      if (
+        !Number.isFinite(score) ||
+        score < 0 ||
+        score > Number(w.points)
+      ) {
+        alert('Invalid score.');
+        continue;
+      }
 
-        let html = [
-            "Sun", "Mon", "Tue", "Wed",
-            "Thu", "Fri", "Sat"
-        ].map(day => `
-            <div class="calendar-day">
-                <strong>${day}</strong>
+      w.grades[sid] = score;
+    }
+
+    save();
+    renderGrades();
+  }
+
+  // CALENDAR
+
+  function renderCalendar() {
+    const y = calendarDate.getFullYear();
+    const m = calendarDate.getMonth();
+
+    $('calendarMonth').textContent =
+      calendarDate.toLocaleDateString(
+        'en-US',
+        {
+          month: 'long',
+          year: 'numeric'
+        }
+      );
+
+    let html = [
+      'Sun', 'Mon', 'Tue', 'Wed',
+      'Thu', 'Fri', 'Sat'
+    ].map(day => `
+      <div class="calendar-day">
+        <strong>${day}</strong>
+      </div>
+    `).join('');
+
+    html += '<div class="calendar-day"></div>'
+      .repeat(new Date(y, m, 1).getDay());
+
+    const daysInMonth =
+      new Date(y, m + 1, 0).getDate();
+
+    for (let day = 1; day <= daysInMonth; day++) {
+      const iso =
+        `${y}-${String(m + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+
+      const events = data.classes.flatMap(c =>
+        c.work
+          .filter(w =>
+            w.status !== 'draft' &&
+            w.dueDate === iso
+          )
+          .map(w => `${c.section}: ${w.title}`)
+      );
+
+      const today = new Date();
+
+      const isToday =
+        today.getFullYear() === y &&
+        today.getMonth() === m &&
+        today.getDate() === day;
+
+      html += `
+        <div class="calendar-day ${
+          isToday ? 'today' : ''
+        }">
+          <strong>${day}</strong>
+
+          ${events.map(e => `
+            <div class="calendar-event">
+              ${esc(e)}
             </div>
-        `).join("");
-
-        for (let i = 0; i < firstDay; i++) {
-            html += `<div class="calendar-day"></div>`;
-        }
-
-        for (let day = 1; day <= days; day++) {
-            const date = [
-                year,
-                String(month + 1).padStart(2, "0"),
-                String(day).padStart(2, "0")
-            ].join("-");
-
-            const events = data.classes.flatMap(c =>
-                c.work
-                    .filter(work => work.dueDate === date)
-                    .map(work =>
-                        `${c.section}: ${work.title}`
-                    )
-            );
-
-            const isToday =
-                today.getFullYear() === year &&
-                today.getMonth() === month &&
-                today.getDate() === day;
-
-            html += `
-                <div class="calendar-day
-                    ${isToday ? "today" : ""}">
-
-                    <strong>${day}</strong>
-
-                    ${events.map(event => `
-                        <div class="calendar-event">
-                            ${escapeHTML(event)}
-                        </div>
-                    `).join("")}
-
-                </div>
-            `;
-        }
-
-        $("calendarGrid").innerHTML = html;
+          `).join('')}
+        </div>
+      `;
     }
 
-    $("previousMonth").addEventListener("click", () => {
-        calendarDate = new Date(
-            calendarDate.getFullYear(),
-            calendarDate.getMonth() - 1,
-            1
-        );
+    $('calendarGrid').innerHTML = html;
+  }
 
-        renderCalendar();
-    });
+  // TO REVIEW
 
-    $("nextMonth").addEventListener("click", () => {
-        calendarDate = new Date(
-            calendarDate.getFullYear(),
-            calendarDate.getMonth() + 1,
-            1
-        );
-
-        renderCalendar();
-    });
-
-    // =====================================
-    // TO REVIEW
-    // =====================================
-
-    function renderReview() {
-        const items = data.classes.flatMap(c =>
-            c.work.map(work => ({
-                className: c.name,
-                section: c.section,
-                work
-            }))
-        );
-
-        $("reviewList").innerHTML = items.length
-            ? items.map(item => `
-                <div class="work-item">
-                    <strong>
-                        ${escapeHTML(item.work.title)}
-                    </strong>
-
-                    <p>
-                        ${escapeHTML(item.className)}
-                        · ${escapeHTML(item.section)}
-                    </p>
-
-                    <p class="muted">
-                        Open the class to enter grades.
-                        Simulated submissions are coming later.
-                    </p>
-                </div>
-            `).join("")
-            : `<p class="muted">
-                   No classwork to review.
-               </p>`;
-    }
-
-    // =====================================
-    // CREATE CLASS
-    // =====================================
-
-    function openCreateClass() {
-        $("createClassDialog").showModal();
-    }
-
-    $("homeCreateClass").addEventListener(
-        "click",
-        openCreateClass
+  function renderReview() {
+    const works = data.classes.flatMap(c =>
+      c.work
+        .filter(w => w.status !== 'draft')
+        .map(w => ({ c, w }))
     );
 
-    $("createClassButton").addEventListener(
-        "click",
-        openCreateClass
+    $('reviewList').innerHTML =
+      works.map(({ c, w }) => `
+        <article class="work-item">
+          <h3>${esc(w.title)}</h3>
+
+          <p>
+            ${esc(c.name)} · ${esc(c.section)}
+          </p>
+
+          <p class="muted">
+            Open the class to enter grades.
+            Student submissions are not simulated yet.
+          </p>
+        </article>
+      `).join('') ||
+      '<div class="empty-state">Nothing to review yet.</div>';
+  }
+
+  // NAVIGATION EVENTS
+
+  $$('.nav-item[data-view]').forEach(b => {
+    b.addEventListener(
+      'click',
+      () => view(b.dataset.view)
+    );
+  });
+
+  $$('.class-tab').forEach(b => {
+    b.addEventListener(
+      'click',
+      () => classTab(b.dataset.classTab)
+    );
+  });
+
+  $('backToClasses').onclick =
+    () => view('classes');
+
+  $('menuToggle').onclick = () =>
+    $('sidebar').classList.toggle('collapsed');
+
+  // CREATE CLASS
+
+  $('homeCreateClass').onclick =
+    $('createClassButton').onclick =
+      () => $('createClassDialog').showModal();
+
+  $('cancelCreateClass').onclick =
+    () => $('createClassDialog').close();
+
+  $('createClassForm').onsubmit = e => {
+    e.preventDefault();
+
+    const c = {
+      id: id(),
+      code: Math.random()
+        .toString(36)
+        .slice(2, 8)
+        .toUpperCase(),
+      name: $('newClassName').value.trim(),
+      section: $('newClassSection').value.trim(),
+      room: $('newClassRoom').value.trim(),
+      subject: $('newClassSubject').value,
+      students: [],
+      announcements: [],
+      work: [],
+      topics: []
+    };
+
+    if (!c.name) return;
+
+    data.classes.push(c);
+    save();
+
+    $('createClassForm').reset();
+    $('createClassDialog').close();
+
+    openClass(c.id);
+  };
+
+  // POST ANNOUNCEMENTS
+
+  $('postAnnouncement').onclick = () => {
+    const text =
+      $('announcementText').value.trim();
+
+    if (!text || !current()) return;
+
+    current().announcements.push({
+      id: id(),
+      text,
+      date: new Date().toLocaleString()
+    });
+
+    save();
+
+    $('announcementText').value = '';
+    renderStream();
+  };
+
+  // CREATE DROPDOWN
+
+  $('openCreateWork').onclick = () => {
+    const menu = $('createWorkMenu');
+
+    menu.hidden = !menu.hidden;
+
+    $('openCreateWork').setAttribute(
+      'aria-expanded',
+      String(!menu.hidden)
+    );
+  };
+
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.create-menu-container')) {
+      $('createWorkMenu').hidden = true;
+
+      $('openCreateWork').setAttribute(
+        'aria-expanded',
+        'false'
+      );
+    }
+  });
+
+  $$('[data-create-type]').forEach(b => {
+    b.onclick = () => {
+      $('createWorkMenu').hidden = true;
+
+      $('openCreateWork').setAttribute(
+        'aria-expanded',
+        'false'
+      );
+
+      const type = b.dataset.createType;
+
+      if (type === 'topic') {
+        $('createTopicDialog').showModal();
+        return;
+      }
+
+      if (type === 'reuse') {
+        alert(
+          'Reuse post will be added in a later update.'
+        );
+        return;
+      }
+
+      openEditor(null, type);
+    };
+  });
+
+  // CREATE TOPIC
+
+  $('createTopicForm').onsubmit = e => {
+    e.preventDefault();
+
+    const name = $('newTopicName').value.trim();
+    const c = current();
+
+    if (!name || !c) return;
+
+    if (!allTopics(c).includes(name)) {
+      c.topics.push(name);
+    }
+
+    save();
+
+    $('createTopicForm').reset();
+    $('createTopicDialog').close();
+
+    renderClasswork();
+  };
+
+  $('cancelCreateTopic').onclick =
+    () => $('createTopicDialog').close();
+
+  $('classworkTopicFilter').onchange =
+    renderClasswork;
+
+  $('collapseTopics').onclick = () => {
+    const topics = allTopics(current());
+
+    collapsedTopics =
+      collapsedTopics.size === topics.length
+        ? new Set()
+        : new Set(topics);
+
+    renderClasswork();
+
+    $('collapseTopics').textContent =
+      collapsedTopics.size
+        ? 'Expand all'
+        : 'Collapse all';
+  };
+
+  // ASSIGNMENT EDITOR BUTTONS
+
+  $('closeAssignmentEditor').onclick = () => {
+    openClass(currentClassId);
+    classTab('classwork');
+  };
+
+  $('saveAssignmentDraft').onclick =
+    () => saveEditor('draft');
+
+  $('publishAssignment').onclick =
+    () => saveEditor('assigned');
+
+  $('assignmentMoreOptions').onclick = () =>
+    alert(
+      'Use Save draft or Assign. Scheduling will be added later.'
     );
 
-    $("cancelCreateClass").addEventListener("click", () => {
-        $("createClassDialog").close();
+  $('editorAssignmentClass').onchange = () => {
+    const c = data.classes.find(
+      c => c.id === $('editorAssignmentClass').value
+    );
+
+    if (!c) return;
+
+    $('editorAssignmentTopic').innerHTML =
+      '<option value="">No topic</option>' +
+      allTopics(c).map(t => `
+        <option value="${esc(t)}">
+          ${esc(t)}
+        </option>
+      `).join('');
+  };
+
+  [
+    'editorAssignmentTitle',
+    'editorAssignmentInstructions',
+    'editorAssignmentPoints',
+    'editorAssignmentDueDate',
+    'editorAssignmentTopic'
+  ].forEach(key => {
+    $(key).addEventListener('input', () => {
+      $('assignmentSaveStatus').textContent =
+        'Unsaved changes';
     });
+  });
 
-    $("createClassForm").addEventListener("submit", event => {
-        event.preventDefault();
+  // ATTACHMENTS
 
-        const name = $("newClassName").value.trim();
-        if (!name) return;
+  $('attachLink').onclick = () => {
+    const url = prompt('Enter an https:// link:');
 
-        const c = {
-            id: makeId(),
-            code: Math.random()
-                .toString(36)
-                .slice(2, 8)
-                .toUpperCase(),
-            name,
-            section: $("newClassSection").value.trim(),
-            room: $("newClassRoom").value.trim(),
-            subject: $("newClassSubject").value,
-            students: [],
-            announcements: [],
-            work: [],
-            automatic: false
-        };
+    if (!url) return;
 
-        data.classes.push(c);
-        saveData();
+    try {
+      const parsed = new URL(url);
 
-        $("createClassForm").reset();
-        $("createClassDialog").close();
+      if (
+        parsed.protocol !== 'https:' &&
+        parsed.protocol !== 'http:'
+      ) {
+        throw Error();
+      }
 
-        renderClasses();
-        openClass(c.id);
-    });
+      $('assignmentAttachments').insertAdjacentHTML(
+        'beforeend',
+        `
+          <p>
+            🔗
+            <a
+              href="${esc(parsed.href)}"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              ${esc(parsed.href)}
+            </a>
+          </p>
+        `
+      );
 
-    // =====================================
-    // MAIN NAVIGATION EVENTS
-    // =====================================
+      alert(
+        'Link preview added. Saving attachments permanently will be added in a later update.'
+      );
+    } catch {
+      alert('Please enter a valid web link.');
+    }
+  };
 
-    $$(".nav-item").forEach(button => {
-        button.addEventListener("click", () => {
-            showView(button.dataset.view);
-        });
-    });
+  $('attachFile').onclick = () =>
+    alert(
+      'File uploads need storage support. For now, add a link to a file.'
+    );
 
-    $$(".class-tab").forEach(button => {
-        button.addEventListener("click", () => {
-            showClassTab(button.dataset.classTab);
-        });
-    });
+  $('attachForm').onclick = () =>
+    alert(
+      'The full Riverside Forms editor is our next project.'
+    );
 
-    $("backToClasses").addEventListener("click", () => {
-        showView("classes");
-    });
+  // ADD STUDENTS
 
-    $("menuToggle").addEventListener("click", () => {
-        $("sidebar").classList.toggle("collapsed");
-    });
+  $('addStudentsButton').onclick = () => {
+    const c = current();
+    if (!c) return;
 
-    // =====================================
-    // INITIALIZE
-    // =====================================
+    $('availableStudents').innerHTML =
+      students.map(s => `
+        <label style="display:block;padding:10px">
+          <input
+            class="student-checkbox"
+            type="checkbox"
+            value="${esc(s.id)}"
+            ${
+              c.students.includes(s.id)
+                ? 'checked'
+                : ''
+            }
+          >
 
-    loadTeacher();
-    setupTeachingSchedule();
+          ${esc(s.name)} (${esc(s.id)})
+        </label>
+      `).join('');
+
+    $('addStudentsDialog').showModal();
+  };
+
+  $('closeAddStudents').onclick =
+    () => $('addStudentsDialog').close();
+
+  $('saveClassStudents').onclick = () => {
+    const c = current();
+    if (!c) return;
+
+    c.students =
+      $$('.student-checkbox:checked')
+        .map(el => el.value);
+
+    save();
+
+    $('addStudentsDialog').close();
+
+    renderStudents();
+    renderGrades();
     renderClasses();
-    showView("home");
+  };
+
+  // CALENDAR BUTTONS
+
+  $('previousMonth').onclick = () => {
+    calendarDate = new Date(
+      calendarDate.getFullYear(),
+      calendarDate.getMonth() - 1,
+      1
+    );
+
+    renderCalendar();
+  };
+
+  $('nextMonth').onclick = () => {
+    calendarDate = new Date(
+      calendarDate.getFullYear(),
+      calendarDate.getMonth() + 1,
+      1
+    );
+
+    renderCalendar();
+  };
+
+  // START CLASSROOM
+
+  renderClasses();
+  view('home');
 });
