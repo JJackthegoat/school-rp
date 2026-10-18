@@ -3,31 +3,46 @@ document.addEventListener("DOMContentLoaded", () => {
   "use strict";
 
   const STORAGE_KEY = "riverside_forms_v1";
+  const CLASSROOM_KEY = "schoolRP_classroom_v1";
+
   const $ = id => document.getElementById(id);
   const $$ = selector => [...document.querySelectorAll(selector)];
 
   const makeId = () =>
-    crypto.randomUUID
+    typeof crypto.randomUUID === "function"
       ? crypto.randomUUID()
-      : Date.now().toString(36) + Math.random().toString(36).slice(2);
+      : Date.now().toString(36) +
+        Math.random().toString(36).slice(2);
 
   const escapeHTML = value =>
-    String(value ?? "").replace(/[&<>"']/g, character => ({
+    String(value ?? "").replace(/[&<>"']/g, ch => ({
       "&": "&amp;",
       "<": "&lt;",
       ">": "&gt;",
       '"': "&quot;",
       "'": "&#39;"
-    }[character]));
+    }[ch]));
 
-  const params = new URLSearchParams(location.search);
+  function readJSON(key, fallback) {
+    try {
+      return JSON.parse(localStorage.getItem(key)) || fallback;
+    } catch {
+      return fallback;
+    }
+  }
+
+  const params = new URLSearchParams(window.location.search);
+
   const requestedFormId = params.get("id");
+  const classId = params.get("classId");
 
-  let savedForms = {};
+  let savedForms = readJSON(STORAGE_KEY, {});
 
-  try {
-    savedForms = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
-  } catch {
+  if (
+    !savedForms ||
+    typeof savedForms !== "object" ||
+    Array.isArray(savedForms)
+  ) {
     savedForms = {};
   }
 
@@ -54,6 +69,10 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentTab = "questions";
   let currentResponseTab = "summary";
 
+  // ==========================================
+  // SAVE FORM
+  // ==========================================
+
   function save() {
     savedForms[formId] = form;
 
@@ -64,8 +83,10 @@ document.addEventListener("DOMContentLoaded", () => {
       );
 
       $("saveStatus").textContent = "All changes saved";
+      return true;
     } catch {
       $("saveStatus").textContent = "Unable to save";
+      return false;
     }
   }
 
@@ -74,13 +95,12 @@ document.addEventListener("DOMContentLoaded", () => {
     save();
   }
 
-  function applyTheme() {
-    document.documentElement.style.setProperty(
-      "--theme",
-      form.theme
-    );
+  // ==========================================
+  // THEME
+  // ==========================================
 
-    const colors = {
+  function applyTheme() {
+    const palettes = {
       "#673ab7": ["#512da8", "#ede7f6", "#f0ebf8"],
       "#1a73e8": ["#1558b0", "#e8f0fe", "#edf3fe"],
       "#188038": ["#137333", "#e6f4ea", "#edf7ef"],
@@ -88,25 +108,39 @@ document.addEventListener("DOMContentLoaded", () => {
       "#e8710a": ["#b85c00", "#fef3e4", "#fff5e9"]
     };
 
-    const palette = colors[form.theme] || colors["#673ab7"];
+    const palette =
+      palettes[form.theme] || palettes["#673ab7"];
 
     document.documentElement.style.setProperty(
-      "--theme-dark", palette[0]
+      "--theme",
+      form.theme
     );
 
     document.documentElement.style.setProperty(
-      "--theme-light", palette[1]
+      "--theme-dark",
+      palette[0]
     );
 
     document.documentElement.style.setProperty(
-      "--page-bg", palette[2]
+      "--theme-light",
+      palette[1]
+    );
+
+    document.documentElement.style.setProperty(
+      "--page-bg",
+      palette[2]
     );
   }
+
+  // ==========================================
+  // HEADER
+  // ==========================================
 
   function updateHeader() {
     $("headerFormTitle").value = form.title;
     $("formTitle").value = form.title;
     $("formDescription").value = form.description;
+
     $("quizMode").checked = form.quizMode;
     $("collectNames").checked = form.collectNames;
     $("limitResponses").checked = form.limitResponses;
@@ -114,14 +148,21 @@ document.addEventListener("DOMContentLoaded", () => {
     $("confirmationMessage").value =
       form.confirmationMessage;
 
-    $("responseCount").textContent = form.responses.length;
-    $("responsesTotal").textContent = form.responses.length;
+    $("responseCount").textContent =
+      form.responses.length;
+
+    $("responsesTotal").textContent =
+      form.responses.length;
 
     $("publishForm").textContent =
       form.published ? "Published" : "Publish";
 
     document.title = `${form.title} | Riverside Forms`;
   }
+
+  // ==========================================
+  // TABS
+  // ==========================================
 
   function showTab(tab) {
     currentTab = tab;
@@ -140,8 +181,18 @@ document.addEventListener("DOMContentLoaded", () => {
       );
     });
 
-    if (tab === "responses") renderResponses();
     if (tab === "questions") renderQuestions();
+    if (tab === "responses") renderResponses();
+  }
+
+  // ==========================================
+  // QUESTIONS
+  // ==========================================
+
+  function getQuestion(questionId) {
+    return form.questions.find(
+      question => question.id === questionId
+    );
   }
 
   function newQuestion(type = "multiple") {
@@ -162,34 +213,39 @@ document.addEventListener("DOMContentLoaded", () => {
     renderQuestions();
   }
 
-  function getQuestion(id) {
-    return form.questions.find(q => q.id === id);
-  }
+  function questionOptions(question) {
+    if (
+      !["multiple", "checkbox", "dropdown"]
+        .includes(question.type)
+    ) {
+      const placeholder =
+        question.type === "paragraph"
+          ? "Long answer text"
+          : "Short answer text";
 
-  function questionOptions(q) {
-    if (!["multiple", "checkbox", "dropdown"].includes(q.type)) {
-      if (q.type === "paragraph") {
-        return '<div class="question-placeholder">Long answer text</div>';
-      }
-
-      if (q.type === "short") {
-        return '<div class="question-placeholder">Short answer text</div>';
-      }
-
-      return '<div class="question-placeholder">Response</div>';
+      return `
+        <div class="question-placeholder">
+          ${placeholder}
+        </div>
+      `;
     }
 
-    const symbol = q.type === "checkbox" ? "□" : "◯";
+    const symbol =
+      question.type === "checkbox" ? "□" : "◯";
 
     return `
       <div class="question-options">
-        ${q.options.map((option, index) => `
+
+        ${question.options.map((option, index) => `
           <div class="question-option">
-            <span class="option-symbol">${symbol}</span>
+
+            <span class="option-symbol">
+              ${symbol}
+            </span>
 
             <input
               class="option-input"
-              data-question="${escapeHTML(q.id)}"
+              data-question="${escapeHTML(question.id)}"
               data-option-index="${index}"
               value="${escapeHTML(option)}"
               placeholder="Option ${index + 1}"
@@ -197,137 +253,214 @@ document.addEventListener("DOMContentLoaded", () => {
 
             <button
               class="remove-option"
-              data-remove-option="${escapeHTML(q.id)}"
+              data-remove-option="${escapeHTML(question.id)}"
               data-option-index="${index}"
               title="Remove option"
             >
               ×
             </button>
+
           </div>
         `).join("")}
 
         <button
           class="add-option-button"
-          data-add-option="${escapeHTML(q.id)}"
+          data-add-option="${escapeHTML(question.id)}"
         >
           + Add option
         </button>
+
       </div>
     `;
   }
 
-  function answerKey(q) {
+  // ==========================================
+  // ANSWER KEY
+  // ==========================================
+
+  function answerKey(question) {
     if (!form.quizMode) return "";
 
-    if (!["multiple", "checkbox", "dropdown"].includes(q.type)) {
+    if (
+      !["multiple", "checkbox", "dropdown"]
+        .includes(question.type)
+    ) {
       return `
         <div class="answer-key-panel">
           <h4>Answer key</h4>
-          <p>Written answers can be reviewed manually.</p>
+          <p>Written answers can be graded manually.</p>
         </div>
       `;
     }
 
     return `
       <div class="answer-key-panel">
-        <h4>Answer key — Select correct answer(s)</h4>
 
-        ${q.options.map((option, index) => `
+        <h4>
+          Answer key — Select correct answer(s)
+        </h4>
+
+        ${question.options.map((option, index) => `
           <label>
+
             <input
-              type="${q.type === "checkbox" ? "checkbox" : "radio"}"
-              name="answer-${escapeHTML(q.id)}"
-              data-answer-question="${escapeHTML(q.id)}"
+              type="${
+                question.type === "checkbox"
+                  ? "checkbox"
+                  : "radio"
+              }"
+              name="answer-${escapeHTML(question.id)}"
+              data-answer-question="${escapeHTML(question.id)}"
               value="${index}"
-              ${q.answer.includes(index) ? "checked" : ""}
+              ${
+                question.answer.includes(index)
+                  ? "checked"
+                  : ""
+              }
             >
+
             ${escapeHTML(option)}
+
           </label>
         `).join("")}
+
       </div>
     `;
   }
 
+  // ==========================================
+  // RENDER QUESTION EDITOR
+  // ==========================================
+
   function renderQuestions() {
-    $("emptyQuestions").hidden = form.questions.length > 0;
+    $("emptyQuestions").hidden =
+      form.questions.length > 0;
 
     $("questionsContainer").innerHTML =
-      form.questions.map(q => `
+      form.questions.map(question => `
         <article
           class="question-card ${
-            q.id === selectedQuestionId ? "selected" : ""
+            question.id === selectedQuestionId
+              ? "selected"
+              : ""
           }"
-          data-card="${escapeHTML(q.id)}"
+          data-card="${escapeHTML(question.id)}"
         >
 
           <div class="question-card-top">
 
             <input
               class="question-title-input"
-              data-question-title="${escapeHTML(q.id)}"
-              value="${escapeHTML(q.title)}"
+              data-question-title="${escapeHTML(question.id)}"
+              value="${escapeHTML(question.title)}"
               placeholder="Question"
             >
 
             <select
               class="question-type-select"
-              data-question-type="${escapeHTML(q.id)}"
+              data-question-type="${escapeHTML(question.id)}"
             >
-              <option value="multiple" ${q.type === "multiple" ? "selected" : ""}>
+
+              <option
+                value="multiple"
+                ${
+                  question.type === "multiple"
+                    ? "selected"
+                    : ""
+                }
+              >
                 Multiple choice
               </option>
 
-              <option value="checkbox" ${q.type === "checkbox" ? "selected" : ""}>
+              <option
+                value="checkbox"
+                ${
+                  question.type === "checkbox"
+                    ? "selected"
+                    : ""
+                }
+              >
                 Checkboxes
               </option>
 
-              <option value="dropdown" ${q.type === "dropdown" ? "selected" : ""}>
+              <option
+                value="dropdown"
+                ${
+                  question.type === "dropdown"
+                    ? "selected"
+                    : ""
+                }
+              >
                 Dropdown
               </option>
 
-              <option value="short" ${q.type === "short" ? "selected" : ""}>
+              <option
+                value="short"
+                ${
+                  question.type === "short"
+                    ? "selected"
+                    : ""
+                }
+              >
                 Short answer
               </option>
 
-              <option value="paragraph" ${q.type === "paragraph" ? "selected" : ""}>
+              <option
+                value="paragraph"
+                ${
+                  question.type === "paragraph"
+                    ? "selected"
+                    : ""
+                }
+              >
                 Paragraph
               </option>
+
             </select>
 
           </div>
 
-          ${questionOptions(q)}
+          ${questionOptions(question)}
 
-          ${q.id === selectedQuestionId ? answerKey(q) : ""}
+          ${
+            question.id === selectedQuestionId
+              ? answerKey(question)
+              : ""
+          }
 
           <div class="question-footer">
 
-            ${form.quizMode ? `
-              <span class="answer-key-button">
-                Answer key
-              </span>
+            ${
+              form.quizMode
+                ? `
+                  <span class="answer-key-button">
+                    Answer key
+                  </span>
 
-              <label>
-                Points
-                <input
-                  class="question-points"
-                  type="number"
-                  min="0"
-                  data-points="${escapeHTML(q.id)}"
-                  value="${q.points}"
-                >
-              </label>
-            ` : ""}
+                  <label>
+                    Points
+
+                    <input
+                      class="question-points"
+                      type="number"
+                      min="0"
+                      data-points="${escapeHTML(question.id)}"
+                      value="${question.points}"
+                    >
+                  </label>
+                `
+                : ""
+            }
 
             <button
-              data-duplicate="${escapeHTML(q.id)}"
+              data-duplicate="${escapeHTML(question.id)}"
               title="Duplicate question"
             >
               ▣
             </button>
 
             <button
-              data-delete="${escapeHTML(q.id)}"
+              data-delete="${escapeHTML(question.id)}"
               title="Delete question"
             >
               🗑
@@ -335,10 +468,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
             <label>
               Required
+
               <input
                 type="checkbox"
-                data-required="${escapeHTML(q.id)}"
-                ${q.required ? "checked" : ""}
+                data-required="${escapeHTML(question.id)}"
+                ${question.required ? "checked" : ""}
               >
             </label>
 
@@ -350,10 +484,16 @@ document.addEventListener("DOMContentLoaded", () => {
     bindQuestionEvents();
   }
 
+  // ==========================================
+  // QUESTION EVENTS
+  // ==========================================
+
   function bindQuestionEvents() {
     $$("[data-card]").forEach(card => {
       card.addEventListener("click", event => {
-        if (selectedQuestionId === card.dataset.card) return;
+        if (selectedQuestionId === card.dataset.card) {
+          return;
+        }
 
         selectedQuestionId = card.dataset.card;
         renderQuestions();
@@ -361,35 +501,62 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     $$("[data-question-title]").forEach(input => {
-      input.addEventListener("input", () => {
-        getQuestion(input.dataset.questionTitle).title = input.value;
+      input.oninput = () => {
+        const question = getQuestion(
+          input.dataset.questionTitle
+        );
+
+        if (!question) return;
+
+        question.title = input.value;
         setChanged();
-      });
+      };
     });
 
     $$("[data-question-type]").forEach(select => {
-      select.addEventListener("change", () => {
-        const q = getQuestion(select.dataset.questionType);
-        q.type = select.value;
-        q.answer = [];
+      select.onchange = () => {
+        const question = getQuestion(
+          select.dataset.questionType
+        );
+
+        if (!question) return;
+
+        question.type = select.value;
+        question.answer = [];
 
         setChanged();
         renderQuestions();
-      });
+      };
     });
 
-    $$("[data-option-index].option-input").forEach(input => {
-      input.addEventListener("input", () => {
-        const q = getQuestion(input.dataset.question);
-        q.options[Number(input.dataset.optionIndex)] = input.value;
+    $$(".option-input[data-option-index]").forEach(input => {
+      input.oninput = () => {
+        const question = getQuestion(
+          input.dataset.question
+        );
+
+        if (!question) return;
+
+        question.options[
+          Number(input.dataset.optionIndex)
+        ] = input.value;
+
         setChanged();
-      });
+      };
     });
 
     $$("[data-add-option]").forEach(button => {
       button.onclick = () => {
-        const q = getQuestion(button.dataset.addOption);
-        q.options.push(`Option ${q.options.length + 1}`);
+        const question = getQuestion(
+          button.dataset.addOption
+        );
+
+        if (!question) return;
+
+        question.options.push(
+          `Option ${question.options.length + 1}`
+        );
+
         setChanged();
         renderQuestions();
       };
@@ -397,19 +564,28 @@ document.addEventListener("DOMContentLoaded", () => {
 
     $$("[data-remove-option]").forEach(button => {
       button.onclick = () => {
-        const q = getQuestion(button.dataset.removeOption);
-        const index = Number(button.dataset.optionIndex);
+        const question = getQuestion(
+          button.dataset.removeOption
+        );
 
-        if (q.options.length <= 1) {
+        if (!question) return;
+
+        if (question.options.length <= 1) {
           alert("A question needs at least one option.");
           return;
         }
 
-        q.options.splice(index, 1);
+        const index = Number(
+          button.dataset.optionIndex
+        );
 
-        q.answer = q.answer
-          .filter(a => a !== index)
-          .map(a => a > index ? a - 1 : a);
+        question.options.splice(index, 1);
+
+        question.answer = question.answer
+          .filter(answer => answer !== index)
+          .map(answer =>
+            answer > index ? answer - 1 : answer
+          );
 
         setChanged();
         renderQuestions();
@@ -418,17 +594,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
     $$("[data-answer-question]").forEach(input => {
       input.onchange = () => {
-        const q = getQuestion(input.dataset.answerQuestion);
+        const question = getQuestion(
+          input.dataset.answerQuestion
+        );
+
+        if (!question) return;
+
         const index = Number(input.value);
 
-        if (q.type === "checkbox") {
+        if (question.type === "checkbox") {
           if (input.checked) {
-            if (!q.answer.includes(index)) q.answer.push(index);
+            if (!question.answer.includes(index)) {
+              question.answer.push(index);
+            }
           } else {
-            q.answer = q.answer.filter(a => a !== index);
+            question.answer = question.answer.filter(
+              answer => answer !== index
+            );
           }
         } else {
-          q.answer = [index];
+          question.answer = [index];
         }
 
         setChanged();
@@ -437,29 +622,54 @@ document.addEventListener("DOMContentLoaded", () => {
 
     $$("[data-points]").forEach(input => {
       input.oninput = () => {
-        const q = getQuestion(input.dataset.points);
-        q.points = Math.max(0, Number(input.value) || 0);
+        const question = getQuestion(
+          input.dataset.points
+        );
+
+        if (!question) return;
+
+        question.points = Math.max(
+          0,
+          Number(input.value) || 0
+        );
+
         setChanged();
       };
     });
 
     $$("[data-required]").forEach(input => {
       input.onchange = () => {
-        getQuestion(input.dataset.required).required = input.checked;
+        const question = getQuestion(
+          input.dataset.required
+        );
+
+        if (!question) return;
+
+        question.required = input.checked;
         setChanged();
       };
     });
 
     $$("[data-duplicate]").forEach(button => {
       button.onclick = () => {
-        const original = getQuestion(button.dataset.duplicate);
-        const copy = structuredClone(original);
+        const original = getQuestion(
+          button.dataset.duplicate
+        );
+
+        if (!original) return;
+
+        const copy = JSON.parse(
+          JSON.stringify(original)
+        );
+
         copy.id = makeId();
 
         const index = form.questions.indexOf(original);
+
         form.questions.splice(index + 1, 0, copy);
 
         selectedQuestionId = copy.id;
+
         setChanged();
         renderQuestions();
       };
@@ -468,16 +678,22 @@ document.addEventListener("DOMContentLoaded", () => {
     $$("[data-delete]").forEach(button => {
       button.onclick = () => {
         form.questions = form.questions.filter(
-          q => q.id !== button.dataset.delete
+          question =>
+            question.id !== button.dataset.delete
         );
 
-        selectedQuestionId = form.questions[0]?.id || null;
+        selectedQuestionId =
+          form.questions[0]?.id || null;
 
         setChanged();
         renderQuestions();
       };
     });
   }
+
+  // ==========================================
+  // PREVIEW
+  // ==========================================
 
   function renderPreview() {
     $("previewContent").innerHTML = `
@@ -486,28 +702,52 @@ document.addEventListener("DOMContentLoaded", () => {
         <p>${escapeHTML(form.description)}</p>
       </div>
 
-      ${form.questions.map(q => `
+      ${form.questions.map(question => `
         <div class="preview-question">
+
           <h3>
-            ${escapeHTML(q.title || "Untitled question")}
-            ${q.required ? '<span style="color:red">*</span>' : ""}
+            ${escapeHTML(
+              question.title || "Untitled question"
+            )}
+
+            ${
+              question.required
+                ? '<span style="color:red">*</span>'
+                : ""
+            }
           </h3>
 
           ${
-            ["multiple", "checkbox", "dropdown"].includes(q.type)
-              ? q.options.map(option => `
-                <label>
-                  <input
-                    type="${q.type === "checkbox" ? "checkbox" : "radio"}"
-                    name="preview-${escapeHTML(q.id)}"
-                  >
-                  ${escapeHTML(option)}
-                </label>
-              `).join("")
-              : q.type === "paragraph"
-                ? '<textarea placeholder="Your answer"></textarea>'
-                : '<input type="text" placeholder="Your answer">'
+            ["multiple", "checkbox", "dropdown"]
+              .includes(question.type)
+                ? question.options.map(option => `
+                  <label>
+                    <input
+                      type="${
+                        question.type === "checkbox"
+                          ? "checkbox"
+                          : "radio"
+                      }"
+                      name="preview-${escapeHTML(question.id)}"
+                    >
+
+                    ${escapeHTML(option)}
+                  </label>
+                `).join("")
+                : question.type === "paragraph"
+                  ? `
+                    <textarea
+                      placeholder="Your answer"
+                    ></textarea>
+                  `
+                  : `
+                    <input
+                      type="text"
+                      placeholder="Your answer"
+                    >
+                  `
           }
+
         </div>
       `).join("")}
 
@@ -517,17 +757,28 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
   }
 
+  // ==========================================
+  // RESPONSES
+  // ==========================================
+
   function renderResponses() {
-    $("responseCount").textContent = form.responses.length;
-    $("responsesTotal").textContent = form.responses.length;
+    $("responseCount").textContent =
+      form.responses.length;
+
+    $("responsesTotal").textContent =
+      form.responses.length;
 
     if (!form.responses.length) {
       $("responsesContent").innerHTML = `
         <div class="empty-response-state">
           <h3>No responses yet</h3>
-          <p>Student responses will appear here.</p>
+
+          <p>
+            Student responses will appear here.
+          </p>
         </div>
       `;
+
       return;
     }
 
@@ -535,40 +786,178 @@ document.addEventListener("DOMContentLoaded", () => {
       form.responses.map((response, index) => `
         <div class="preview-question">
           <h3>Response ${index + 1}</h3>
-          <p>${escapeHTML(response.name || "Student")}</p>
-          <p>${escapeHTML(response.date || "")}</p>
+
+          <p>
+            ${escapeHTML(response.name || "Student")}
+          </p>
+
+          <p>
+            ${escapeHTML(response.date || "")}
+          </p>
         </div>
       `).join("");
   }
 
+  // ==========================================
+  // PUBLISH TO CLASSROOM
+  // ==========================================
+
   function publish() {
     if (!form.questions.length) {
-      alert("Add at least one question before publishing.");
+      alert(
+        "Add at least one question before publishing."
+      );
+      return;
+    }
+
+    const missingTitles = form.questions.some(
+      question => !question.title.trim()
+    );
+
+    if (missingTitles) {
+      alert(
+        "Please give every question a title."
+      );
       return;
     }
 
     form.published = true;
-    setChanged();
+
+    if (!save()) {
+      alert(
+        "The quiz could not be saved. Please try again."
+      );
+      return;
+    }
+
     updateHeader();
+
+    if (!classId) {
+      $("publishDialog").close();
+
+      alert(
+        "Quiz published! This form was not opened from Classroom, so it was not added to a class."
+      );
+
+      return;
+    }
+
+    const classroomData = readJSON(
+      CLASSROOM_KEY,
+      null
+    );
+
+    if (
+      !classroomData ||
+      !Array.isArray(classroomData.classes)
+    ) {
+      $("publishDialog").close();
+
+      alert(
+        "Quiz saved, but Classroom data could not be found."
+      );
+
+      return;
+    }
+
+    const targetClass = classroomData.classes.find(
+      classroom => classroom.id === classId
+    );
+
+    if (!targetClass) {
+      $("publishDialog").close();
+
+      alert(
+        "Quiz saved, but the original class could not be found."
+      );
+
+      return;
+    }
+
+    targetClass.work ||= [];
+
+    const totalPoints = form.questions.reduce(
+      (total, question) =>
+        total + (Number(question.points) || 0),
+      0
+    );
+
+    let assignment = targetClass.work.find(
+      work => work.formId === form.id
+    );
+
+    if (!assignment) {
+      assignment = {
+        id: makeId(),
+        formId: form.id,
+        type: "quiz",
+        grades: {},
+        questions: [],
+        attachments: []
+      };
+
+      targetClass.work.push(assignment);
+    }
+
+    Object.assign(assignment, {
+      title: form.title.trim() || "Untitled quiz",
+      instructions: form.description,
+      points: totalPoints,
+      dueDate: assignment.dueDate || "",
+      topic: assignment.topic || "",
+      type: "quiz",
+      formId: form.id,
+      status: "assigned",
+      publishedAt: new Date().toISOString()
+    });
+
+    try {
+      localStorage.setItem(
+        CLASSROOM_KEY,
+        JSON.stringify(classroomData)
+      );
+    } catch {
+      $("publishDialog").close();
+
+      alert(
+        "Quiz saved, but adding it to Classroom failed."
+      );
+
+      return;
+    }
 
     $("publishDialog").close();
 
-    alert("Your Riverside Forms quiz is published!");
+    alert(
+      `Quiz published to ${targetClass.name} — ${targetClass.section}!`
+    );
+
+    window.location.href = "classroom.html";
   }
 
-  // TITLE AND DESCRIPTION
+  // ==========================================
+  // FORM TITLE
+  // ==========================================
 
   $("headerFormTitle").oninput = event => {
     form.title = event.target.value;
+
     $("formTitle").value = form.title;
-    document.title = `${form.title} | Riverside Forms`;
+
+    document.title =
+      `${form.title} | Riverside Forms`;
+
     setChanged();
   };
 
   $("formTitle").oninput = event => {
     form.title = event.target.value;
+
     $("headerFormTitle").value = form.title;
-    document.title = `${form.title} | Riverside Forms`;
+
+    document.title =
+      `${form.title} | Riverside Forms`;
+
     setChanged();
   };
 
@@ -577,15 +966,19 @@ document.addEventListener("DOMContentLoaded", () => {
     setChanged();
   };
 
-  // TABS
+  // ==========================================
+  // TAB EVENTS
+  // ==========================================
 
   $$(".form-tab").forEach(button => {
-    button.onclick = () => showTab(button.dataset.tab);
+    button.onclick = () =>
+      showTab(button.dataset.tab);
   });
 
   $$(".response-tab").forEach(button => {
     button.onclick = () => {
-      currentResponseTab = button.dataset.responseTab;
+      currentResponseTab =
+        button.dataset.responseTab;
 
       $$(".response-tab").forEach(tab => {
         tab.classList.toggle(
@@ -598,33 +991,41 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   });
 
+  // ==========================================
   // QUESTION TOOLBAR
+  // ==========================================
 
-  $("addQuestionButton").onclick = () => newQuestion();
-  $("firstQuestionButton").onclick = () => newQuestion();
+  $("addQuestionButton").onclick =
+    () => newQuestion();
+
+  $("firstQuestionButton").onclick =
+    () => newQuestion();
 
   $("importQuestionButton").onclick = () =>
-    alert("Import questions will be added in a future update.");
+    alert(
+      "Import questions will be added in a future update."
+    );
 
   $("addTitleButton").onclick = () => {
     const title = prompt("Section heading:");
 
-    if (title) {
-      const question = {
-        id: makeId(),
-        title,
-        type: "paragraph",
-        options: [],
-        answer: [],
-        points: 0,
-        required: false
-      };
+    if (!title) return;
 
-      form.questions.push(question);
-      selectedQuestionId = question.id;
-      setChanged();
-      renderQuestions();
-    }
+    const question = {
+      id: makeId(),
+      title,
+      type: "paragraph",
+      options: [],
+      answer: [],
+      points: 0,
+      required: false
+    };
+
+    form.questions.push(question);
+    selectedQuestionId = question.id;
+
+    setChanged();
+    renderQuestions();
   };
 
   $("addImageButton").onclick = () =>
@@ -636,7 +1037,9 @@ document.addEventListener("DOMContentLoaded", () => {
   $("addSectionButton").onclick = () =>
     alert("Multiple form sections will be added later.");
 
-  // PREVIEW
+  // ==========================================
+  // PREVIEW EVENTS
+  // ==========================================
 
   $("previewForm").onclick = () => {
     renderPreview();
@@ -646,7 +1049,9 @@ document.addEventListener("DOMContentLoaded", () => {
   $("closePreview").onclick = () =>
     $("previewDialog").close();
 
-  // THEME
+  // ==========================================
+  // THEME EVENTS
+  // ==========================================
 
   $("themeButton").onclick = () =>
     $("themeDialog").showModal();
@@ -657,16 +1062,21 @@ document.addEventListener("DOMContentLoaded", () => {
   $$(".theme-color").forEach(button => {
     button.onclick = () => {
       form.theme = button.dataset.color;
+
       applyTheme();
       setChanged();
+
       $("themeDialog").close();
     };
   });
 
+  // ==========================================
   // SETTINGS
+  // ==========================================
 
   $("quizMode").onchange = event => {
     form.quizMode = event.target.checked;
+
     setChanged();
     renderQuestions();
   };
@@ -686,7 +1096,9 @@ document.addEventListener("DOMContentLoaded", () => {
     setChanged();
   };
 
-  // PUBLISH
+  // ==========================================
+  // PUBLISH EVENTS
+  // ==========================================
 
   $("publishForm").onclick = () => {
     $("publishedLink").value =
@@ -715,7 +1127,9 @@ document.addEventListener("DOMContentLoaded", () => {
   $("moreOptions").onclick = () =>
     alert("More form options are coming soon.");
 
-  // START
+  // ==========================================
+  // START RIVERSIDE FORMS
+  // ==========================================
 
   applyTheme();
   updateHeader();
