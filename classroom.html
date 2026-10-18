@@ -1,0 +1,754 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Riverside Classroom | School RP</title>
+
+    <link rel="stylesheet" href="classroom.css">
+    <script src="classroom.js" defer></script>
+</head>
+
+<body>
+
+<div class="app-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+
+        <div class="sidebar-brand">
+            <div class="brand-icon">R</div>
+
+            <div>
+                <h2>Riverside Classroom</h2>
+                <small>School RP Simulation</small>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav"
+             aria-label="Classroom navigation">
+
+            <button class="nav-item active"
+                    data-view="home">
+                Home
+            </button>
+
+            <button class="nav-item"
+                    data-view="classes">
+                My Classes
+            </button>
+
+            <button class="nav-item"
+                    data-view="calendar">
+                Calendar
+            </button>
+
+            <button class="nav-item"
+                    data-view="todo">
+                To Review
+            </button>
+
+            <button class="nav-item"
+                    data-view="settings">
+                Settings
+            </button>
+
+        </nav>
+
+        <div class="sidebar-section">
+
+            <h3>Teaching</h3>
+
+            <div id="sidebarClassList">
+                <p class="muted">
+                    No classes created yet.
+                </p>
+            </div>
+
+        </div>
+
+        <div class="sidebar-bottom">
+
+            <a href="index.html">
+                Return to School RP
+            </a>
+
+            <a href="genesis.html">
+                Open Genesis
+            </a>
+
+        </div>
+
+    </aside>
+
+    <!-- MAIN APPLICATION -->
+    <div class="main-area">
+
+        <!-- TOP HEADER -->
+        <header class="topbar">
+
+            <div class="topbar-left">
+
+                <button id="menuToggle"
+                        aria-label="Toggle sidebar">
+                    ☰
+                </button>
+
+                <div>
+                    <h1 id="pageTitle">Classroom Home</h1>
+                    <p>Riverside Middle School</p>
+                </div>
+
+            </div>
+
+            <div class="topbar-right">
+
+                <span id="teacherDisplay">
+                    Teacher
+                </span>
+
+                <div class="teacher-avatar"
+                     aria-label="Teacher profile">
+                    T
+                </div>
+
+            </div>
+
+        </header>
+
+        <main class="content">
+
+            <!-- HOME PAGE -->
+            <section class="view active" id="homeView">
+
+                <div class="welcome-banner">
+
+                    <h2 id="welcomeMessage">
+                        Welcome to Classroom
+                    </h2>
+
+                    <p>
+                        Create classes, post assignments,
+                        and manage your students.
+                    </p>
+
+                    <button id="homeCreateClass"
+                            class="primary-btn">
+                        + Create Class
+                    </button>
+
+                </div>
+
+                <div class="section-heading">
+                    <h2>Your Classes</h2>
+                </div>
+
+                <div class="class-grid"
+                     id="homeClassGrid">
+
+                    <div class="empty-state">
+                        <h3>No classes yet</h3>
+                        <p>
+                            Create your first class
+                            to get started.
+                        </p>
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- MY CLASSES -->
+            <section class="view" id="classesView">
+
+                <div class="section-heading">
+
+                    <div>
+                        <h2>My Classes</h2>
+                        <p>
+                            Manage your teaching
+                            assignments.
+                        </p>
+                    </div>
+
+                    <button id="createClassButton"
+                            class="primary-btn">
+                        + Create Class
+                    </button>
+
+                </div>
+
+                <div class="class-grid"
+                     id="classGrid">
+                </div>
+
+            </section>
+
+            <!-- INDIVIDUAL CLASS -->
+            <section class="view" id="classDetailView">
+
+                <button id="backToClasses"
+                        class="text-btn">
+                    ← All Classes
+                </button>
+
+                <div class="class-banner">
+
+                    <h2 id="classTitle">
+                        Class Name
+                    </h2>
+
+                    <p id="classSubtitle">
+                        Period · Room
+                    </p>
+
+                    <small id="classCodeDisplay">
+                        Class Code
+                    </small>
+
+                </div>
+
+                <!-- CLASS TABS -->
+                <nav class="class-tabs"
+                     aria-label="Class sections">
+
+                    <button class="class-tab active"
+                            data-class-tab="stream">
+                        Stream
+                    </button>
+
+                    <button class="class-tab"
+                            data-class-tab="classwork">
+                        Classwork
+                    </button>
+
+                    <button class="class-tab"
+                            data-class-tab="people">
+                        People
+                    </button>
+
+                    <button class="class-tab"
+                            data-class-tab="grades">
+                        Grades
+                    </button>
+
+                </nav>
+
+                <!-- STREAM -->
+                <div class="class-panel active"
+                     id="streamPanel">
+
+                    <div class="stream-layout">
+
+                        <aside class="stream-sidebar">
+
+                            <div class="panel-card">
+                                <h3>Upcoming</h3>
+
+                                <div id="upcomingWork">
+                                    <p class="muted">
+                                        No upcoming work.
+                                    </p>
+                                </div>
+                            </div>
+
+                        </aside>
+
+                        <div class="stream-main">
+
+                            <div class="panel-card">
+
+                                <h3>Class Announcement</h3>
+
+                                <textarea
+                                    id="announcementText"
+                                    rows="3"
+                                    placeholder="Announce something to your class..."
+                                ></textarea>
+
+                                <button id="postAnnouncement"
+                                        class="primary-btn">
+                                    Post Announcement
+                                </button>
+
+                            </div>
+
+                            <div id="streamPosts">
+                                <div class="empty-state">
+                                    <p>
+                                        Announcements and
+                                        class activity will
+                                        appear here.
+                                    </p>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- CLASSWORK -->
+                <div class="class-panel"
+                     id="classworkPanel">
+
+                    <div class="section-heading">
+
+                        <h3>Classwork</h3>
+
+                        <button id="openCreateWork"
+                                class="primary-btn">
+                            + Create
+                        </button>
+
+                    </div>
+
+                    <div id="classworkList">
+
+                        <div class="empty-state">
+                            <h3>No assignments yet</h3>
+                            <p>
+                                Create an assignment,
+                                quiz, or question.
+                            </p>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- PEOPLE -->
+                <div class="class-panel"
+                     id="peoplePanel">
+
+                    <div class="section-heading">
+
+                        <h3>Students</h3>
+
+                        <button id="addStudentsButton"
+                                class="primary-btn">
+                            + Add Students
+                        </button>
+
+                    </div>
+
+                    <div class="panel-card">
+
+                        <table class="data-table">
+
+                            <thead>
+                                <tr>
+                                    <th>Student Name</th>
+                                    <th>Student ID</th>
+                                    <th>Grade</th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="classStudentList">
+                                <tr>
+                                    <td colspan="3">
+                                        No students enrolled.
+                                    </td>
+                                </tr>
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </div>
+
+                <!-- GRADES -->
+                <div class="class-panel"
+                     id="gradesPanel">
+
+                    <div class="section-heading">
+                        <h3>Class Grades</h3>
+                    </div>
+
+                    <div class="panel-card">
+
+                        <div class="table-wrapper">
+
+                            <table class="data-table">
+
+                                <thead>
+                                    <tr>
+                                        <th>Student</th>
+                                        <th>Assignments</th>
+                                        <th>Average</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody id="classGradesBody">
+                                    <tr>
+                                        <td colspan="3">
+                                            No grades available.
+                                        </td>
+                                    </tr>
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- CALENDAR -->
+            <section class="view" id="calendarView">
+
+                <div class="section-heading">
+                    <h2>Classroom Calendar</h2>
+                </div>
+
+                <div class="panel-card">
+
+                    <div class="calendar-toolbar">
+
+                        <button id="previousMonth">
+                            ←
+                        </button>
+
+                        <h3 id="calendarMonth">
+                            October 2026
+                        </h3>
+
+                        <button id="nextMonth">
+                            →
+                        </button>
+
+                    </div>
+
+                    <div id="calendarGrid"
+                         class="calendar-grid">
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- TO REVIEW -->
+            <section class="view" id="todoView">
+
+                <div class="section-heading">
+                    <h2>To Review</h2>
+                </div>
+
+                <div class="panel-card">
+
+                    <p>
+                        Student submissions waiting
+                        to be graded will appear here.
+                    </p>
+
+                    <div id="reviewList"></div>
+
+                </div>
+
+            </section>
+
+            <!-- SETTINGS -->
+            <section class="view" id="settingsView">
+
+                <div class="section-heading">
+                    <h2>Classroom Settings</h2>
+                </div>
+
+                <div class="panel-card">
+
+                    <h3>Teacher Information</h3>
+
+                    <p>
+                        <strong>Name:</strong>
+                        <span id="settingsTeacherName">
+                            Teacher
+                        </span>
+                    </p>
+
+                    <p>
+                        <strong>Subject:</strong>
+                        <span id="settingsTeacherSubject">
+                            Not Set
+                        </span>
+                    </p>
+
+                    <p>
+                        <strong>Grade:</strong>
+                        <span id="settingsTeacherGrade">
+                            Not Set
+                        </span>
+                    </p>
+
+                    <p class="muted">
+                        Teacher information is managed
+                        from your School RP dashboard.
+                    </p>
+
+                    <a href="index.html">
+                        Edit Teacher Profile
+                    </a>
+
+                </div>
+
+            </section>
+
+        </main>
+
+    </div>
+
+</div>
+
+<!-- CREATE CLASS DIALOG -->
+<dialog id="createClassDialog"
+        class="app-dialog">
+
+    <form id="createClassForm">
+
+        <h2>Create Class</h2>
+
+        <label for="newClassName">
+            Class Name
+        </label>
+
+        <input type="text"
+               id="newClassName"
+               placeholder="Mathematics 7"
+               required>
+
+        <label for="newClassSection">
+            Section / Period
+        </label>
+
+        <input type="text"
+               id="newClassSection"
+               placeholder="Period 1">
+
+        <label for="newClassRoom">
+            Room
+        </label>
+
+        <input type="text"
+               id="newClassRoom"
+               placeholder="204">
+
+        <label for="newClassSubject">
+            Subject
+        </label>
+
+        <select id="newClassSubject">
+            <option value="Math">Mathematics</option>
+            <option value="ELA">English Language Arts</option>
+            <option value="Science">Science</option>
+            <option value="Social Studies">
+                Social Studies
+            </option>
+            <option value="PE">
+                Physical Education
+            </option>
+            <option value="Art">Art</option>
+            <option value="Music">Music</option>
+        </select>
+
+        <div class="dialog-actions">
+
+            <button type="button"
+                    id="cancelCreateClass">
+                Cancel
+            </button>
+
+            <button type="submit"
+                    class="primary-btn">
+                Create Class
+            </button>
+
+        </div>
+
+    </form>
+
+</dialog>
+
+<!-- CREATE ASSIGNMENT DIALOG -->
+<dialog id="createWorkDialog"
+        class="app-dialog">
+
+    <form id="createWorkForm">
+
+        <h2>Create Classwork</h2>
+
+        <label for="workType">
+            Type
+        </label>
+
+        <select id="workType">
+            <option value="assignment">
+                Assignment
+            </option>
+            <option value="quiz">
+                Quiz
+            </option>
+            <option value="question">
+                Question
+            </option>
+            <option value="material">
+                Material
+            </option>
+        </select>
+
+        <label for="workTitle">
+            Title
+        </label>
+
+        <input type="text"
+               id="workTitle"
+               placeholder="Chapter 1 Homework"
+               required>
+
+        <label for="workInstructions">
+            Instructions
+        </label>
+
+        <textarea id="workInstructions"
+                  rows="4"
+                  placeholder="Enter instructions..."></textarea>
+
+        <label for="workPoints">
+            Points
+        </label>
+
+        <input type="number"
+               id="workPoints"
+               min="0"
+               value="100">
+
+        <label for="workDueDate">
+            Due Date
+        </label>
+
+        <input type="date"
+               id="workDueDate">
+
+        <label for="workTopic">
+            Topic
+        </label>
+
+        <input type="text"
+               id="workTopic"
+               placeholder="Unit 1">
+
+        <div class="dialog-actions">
+
+            <button type="button"
+                    id="cancelCreateWork">
+                Cancel
+            </button>
+
+            <button type="submit"
+                    class="primary-btn">
+                Post Classwork
+            </button>
+
+        </div>
+
+    </form>
+
+</dialog>
+
+<!-- QUIZ BUILDER DIALOG -->
+<dialog id="quizBuilderDialog"
+        class="app-dialog wide-dialog">
+
+    <form id="quizBuilderForm">
+
+        <h2>Quiz Builder</h2>
+
+        <p>
+            Create a Forms-style quiz for
+            your fictional students.
+        </p>
+
+        <label for="quizTitle">
+            Quiz Title
+        </label>
+
+        <input type="text"
+               id="quizTitle"
+               placeholder="Unit 1 Quiz"
+               required>
+
+        <label for="quizDescription">
+            Description
+        </label>
+
+        <textarea id="quizDescription"
+                  rows="3"></textarea>
+
+        <div id="quizQuestions"></div>
+
+        <button type="button"
+                id="addQuizQuestion">
+            + Add Question
+        </button>
+
+        <div class="dialog-actions">
+
+            <button type="button"
+                    id="cancelQuizBuilder">
+                Cancel
+            </button>
+
+            <button type="submit"
+                    class="primary-btn">
+                Save Quiz
+            </button>
+
+        </div>
+
+    </form>
+
+</dialog>
+
+<!-- ADD STUDENTS DIALOG -->
+<dialog id="addStudentsDialog"
+        class="app-dialog">
+
+    <h2>Add Fictional Students</h2>
+
+    <p>
+        Select students from the
+        School RP student directory.
+    </p>
+
+    <div id="availableStudents"></div>
+
+    <div class="dialog-actions">
+
+        <button type="button"
+                id="closeAddStudents">
+            Cancel
+        </button>
+
+        <button type="button"
+                id="saveClassStudents"
+                class="primary-btn">
+            Add Selected Students
+        </button>
+
+    </div>
+
+</dialog>
+
+<footer class="app-footer">
+    Riverside Classroom · School RP Simulation ·
+    Fictional Student Records · 2026–2027
+</footer>
+
+</body>
+</html>
