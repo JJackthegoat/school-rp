@@ -1,113 +1,114 @@
 
-document.addEventListener('DOMContentLoaded', () => {
-  'use strict';
+document.addEventListener("DOMContentLoaded", () => {
+  "use strict";
 
-  const KEY = 'schoolRP_classroom_v1';
+  const KEY = "schoolRP_classroom_v1";
   const PERIODS = [1, 2, 3, 4, 6, 7];
+
   const $ = id => document.getElementById(id);
   const $$ = selector => [...document.querySelectorAll(selector)];
 
-  const students = [
-    ['10001', 'Alex Morgan'],
-    ['10002', 'Jordan Lee'],
-    ['10003', 'Taylor Brooks'],
-    ['10004', 'Casey Rivera'],
-    ['10005', 'Morgan Davis'],
-    ['10006', 'Avery Wilson'],
-    ['10007', 'Riley Parker'],
-    ['10008', 'Cameron Smith'],
-    ['10009', 'Jamie Thompson'],
-    ['10010', 'Quinn Johnson'],
-    ['10011', 'Dakota Brown'],
-    ['10012', 'Reese Taylor']
-  ].map(([id, name]) => ({ id, name, grade: 7 }));
-
-  const esc = value => String(value ?? '').replace(
-    /[&<>"']/g,
-    ch => ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#39;'
-    }[ch])
-  );
-
   const id = () =>
-    typeof crypto.randomUUID === 'function'
+    typeof crypto.randomUUID === "function"
       ? crypto.randomUUID()
       : Date.now().toString(36) +
         Math.random().toString(36).slice(2);
 
-  const profile = (() => {
+  const esc = value =>
+    String(value ?? "").replace(/[&<>"']/g, ch => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    }[ch]));
+
+  const students = [
+    ["10001", "Alex Morgan"],
+    ["10002", "Jordan Lee"],
+    ["10003", "Taylor Brooks"],
+    ["10004", "Casey Rivera"],
+    ["10005", "Morgan Davis"],
+    ["10006", "Avery Wilson"],
+    ["10007", "Riley Parker"],
+    ["10008", "Cameron Smith"],
+    ["10009", "Jamie Thompson"],
+    ["10010", "Quinn Johnson"],
+    ["10011", "Dakota Brown"],
+    ["10012", "Reese Taylor"]
+  ].map(([id, name]) => ({
+    id,
+    name,
+    grade: 7
+  }));
+
+  function readJSON(key, fallback) {
     try {
-      return JSON.parse(
-        localStorage.getItem('teacherProfile') || '{}'
-      ) || {};
+      return JSON.parse(localStorage.getItem(key)) || fallback;
     } catch {
-      return {};
+      return fallback;
     }
-  })();
+  }
+
+  const profile = readJSON("teacherProfile", {});
 
   const teacher =
-    profile.name || profile.teacherName || 'Teacher';
+    profile.name || profile.teacherName || "Teacher";
 
   const subject =
     profile.subject ||
     profile.teacherSubject ||
-    'General Studies';
+    "General Studies";
 
   const grade =
-    profile.grade || profile.teacherGrade || '7';
+    profile.grade || profile.teacherGrade || "7";
 
-  let data;
+  let data = readJSON(KEY, { classes: [] });
 
-  try {
-    data = JSON.parse(localStorage.getItem(KEY));
-  } catch {
-    data = null;
-  }
-
-  if (!data || !Array.isArray(data.classes)) {
+  if (!Array.isArray(data.classes)) {
     data = { classes: [] };
   }
 
-  const save = () => {
-    try {
-      localStorage.setItem(KEY, JSON.stringify(data));
-    } catch {
-      alert('Browser storage is full or unavailable.');
-    }
-  };
-
   let currentClassId = null;
   let editingWorkId = null;
-  let editingType = 'assignment';
+  let editingType = "assignment";
   let calendarDate = new Date();
   let collapsedTopics = new Set();
 
-  const current = () =>
-    data.classes.find(c => c.id === currentClassId);
+  function save() {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(data));
+    } catch {
+      alert("Unable to save. Browser storage may be full.");
+    }
+  }
 
-  const getStudent = sid =>
-    students.find(s => s.id === sid);
+  function current() {
+    return data.classes.find(c => c.id === currentClassId);
+  }
 
-  const dateLabel = iso => {
-    if (!iso) return 'No due date';
+  function getStudent(sid) {
+    return students.find(s => s.id === sid);
+  }
 
-    const [y, m, d] = iso.split('-').map(Number);
+  function dateLabel(iso) {
+    if (!iso) return "No due date";
+
+    const [y, m, d] = iso.split("-").map(Number);
 
     return new Date(y, m - 1, d).toLocaleDateString(
-      'en-US',
+      "en-US",
       {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
+        month: "short",
+        day: "numeric",
+        year: "numeric"
       }
     );
-  };
+  }
 
-  // SET UP SIX TEACHING PERIODS
+  // ==========================================
+  // INITIALIZE CLASSES
+  // ==========================================
 
   let added = false;
 
@@ -115,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const section = `Period ${period}`;
 
     const exists = data.classes.some(c =>
-      String(c.section || '')
+      String(c.section || "")
         .trim()
         .toLowerCase() === section.toLowerCase()
     );
@@ -130,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .toUpperCase(),
       name: `${subject} ${grade}`,
       section,
-      room: '204',
+      room: "204",
       subject,
       students: [],
       announcements: [],
@@ -151,64 +152,72 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (added) save();
 
-  // TEACHER INFORMATION
+  // ==========================================
+  // TEACHER PROFILE
+  // ==========================================
 
-  $('teacherDisplay').textContent = teacher;
-  $('welcomeMessage').textContent =
-    `Welcome, ${teacher}`;
+  $("teacherDisplay").textContent = teacher;
+  $("welcomeMessage").textContent = `Welcome, ${teacher}`;
 
-  $('settingsTeacherName').textContent = teacher;
-  $('settingsTeacherSubject').textContent = subject;
-  $('settingsTeacherGrade').textContent = grade;
+  $("settingsTeacherName").textContent = teacher;
+  $("settingsTeacherSubject").textContent = subject;
+  $("settingsTeacherGrade").textContent = grade;
 
-  document.querySelector('.teacher-avatar')
-    .textContent = teacher.charAt(0).toUpperCase();
+  const avatar = document.querySelector(".teacher-avatar");
 
-  // PAGE NAVIGATION
+  if (avatar) {
+    avatar.textContent = teacher.charAt(0).toUpperCase();
+  }
+
+  // ==========================================
+  // NAVIGATION
+  // ==========================================
 
   function view(name) {
-    $$('.view').forEach(el => {
+    $$(".view").forEach(el => {
       el.classList.toggle(
-        'active',
+        "active",
         el.id === `${name}View`
       );
     });
 
-    $$('.nav-item[data-view]').forEach(el => {
+    $$(".nav-item[data-view]").forEach(el => {
       el.classList.toggle(
-        'active',
+        "active",
         el.dataset.view === name
       );
     });
 
     const titles = {
-      home: 'Classroom',
-      classes: 'Teaching',
-      classDetail: current()?.name || 'Classroom',
-      assignmentEditor: 'Classwork',
-      calendar: 'Calendar',
-      todo: 'To Review',
-      settings: 'Settings'
+      home: "Classroom",
+      classes: "Teaching",
+      classDetail: current()?.name || "Classroom",
+      assignmentEditor: "Classwork",
+      calendar: "Calendar",
+      todo: "To Review",
+      settings: "Settings"
     };
 
-    $('pageTitle').textContent =
-      titles[name] || 'Classroom';
+    $("pageTitle").textContent =
+      titles[name] || "Classroom";
 
-    if (name === 'home' || name === 'classes') {
+    if (name === "home" || name === "classes") {
       renderClasses();
     }
 
-    if (name === 'calendar') renderCalendar();
-    if (name === 'todo') renderReview();
+    if (name === "calendar") renderCalendar();
+    if (name === "todo") renderReview();
   }
 
+  // ==========================================
   // CLASS CARDS
+  // ==========================================
 
   function renderClasses() {
     const sorted = [...data.classes].sort((a, b) => {
       const period = c =>
         Number(
-          String(c.section || '')
+          String(c.section || "")
             .match(/Period\s*(\d+)/i)?.[1] || 99
         );
 
@@ -229,8 +238,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <div class="class-card-body">
           <p>${esc(c.subject)}</p>
+
           <p class="muted">
-            Room ${esc(c.room || 'Not set')}
+            Room ${esc(c.room || "Not set")}
             · ${c.students.length} students
           </p>
         </div>
@@ -239,12 +249,12 @@ document.addEventListener('DOMContentLoaded', () => {
           Open class →
         </div>
       </article>
-    `).join('');
+    `).join("");
 
-    $('homeClassGrid').innerHTML = cards;
-    $('classGrid').innerHTML = cards;
+    $("homeClassGrid").innerHTML = cards;
+    $("classGrid").innerHTML = cards;
 
-    $('sidebarClassList').innerHTML =
+    $("sidebarClassList").innerHTML =
       sorted.map(c => `
         <button
           class="sidebar-class"
@@ -252,15 +262,15 @@ document.addEventListener('DOMContentLoaded', () => {
         >
           ${esc(c.name)} — ${esc(c.section)}
         </button>
-      `).join('');
+      `).join("");
 
-    $$('[data-class-id]').forEach(el => {
+    $$("[data-class-id]").forEach(el => {
       const open = () => openClass(el.dataset.classId);
 
-      el.addEventListener('click', open);
+      el.addEventListener("click", open);
 
-      el.addEventListener('keydown', e => {
-        if (e.key === 'Enter' || e.key === ' ') {
+      el.addEventListener("keydown", e => {
+        if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           open();
         }
@@ -268,88 +278,87 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // OPEN CLASS
-
   function openClass(classId) {
     currentClassId = classId;
 
     const c = current();
     if (!c) return;
 
-    $('classTitle').textContent = c.name;
+    $("classTitle").textContent = c.name;
 
-    $('classSubtitle').textContent =
-      `${c.section} · Room ${c.room || 'Not set'}`;
+    $("classSubtitle").textContent =
+      `${c.section} · Room ${c.room || "Not set"}`;
 
-    $('classCodeDisplay').textContent =
+    $("classCodeDisplay").textContent =
       `Class code: ${c.code}`;
 
-    view('classDetail');
-    classTab('stream');
+    view("classDetail");
+    classTab("stream");
   }
 
-  // CLASS TABS
-
   function classTab(tab) {
-    $$('.class-tab').forEach(el => {
+    $$(".class-tab").forEach(el => {
       el.classList.toggle(
-        'active',
+        "active",
         el.dataset.classTab === tab
       );
     });
 
-    $$('.class-panel').forEach(el => {
+    $$(".class-panel").forEach(el => {
       el.classList.toggle(
-        'active',
+        "active",
         el.id === `${tab}Panel`
       );
     });
 
-    if (tab === 'stream') renderStream();
-    if (tab === 'classwork') renderClasswork();
-    if (tab === 'people') renderStudents();
-    if (tab === 'grades') renderGrades();
+    if (tab === "stream") renderStream();
+    if (tab === "classwork") renderClasswork();
+    if (tab === "people") renderStudents();
+    if (tab === "grades") renderGrades();
   }
 
+  // ==========================================
   // STREAM
+  // ==========================================
 
   function renderStream() {
     const c = current();
     if (!c) return;
 
-    $('streamPosts').innerHTML =
+    $("streamPosts").innerHTML =
       c.announcements.length
         ? [...c.announcements].reverse().map(p => `
           <article class="stream-post">
             <h3>Announcement</h3>
             <small>${esc(p.date)}</small>
+
             <p style="white-space:pre-wrap">
               ${esc(p.text)}
             </p>
           </article>
-        `).join('')
+        `).join("")
         : '<div class="empty-state">No announcements yet.</div>';
 
     const upcoming = c.work
-      .filter(w => w.status !== 'draft' && w.dueDate)
+      .filter(w => w.status !== "draft" && w.dueDate)
       .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
       .slice(0, 5);
 
-    $('upcomingWork').innerHTML =
+    $("upcomingWork").innerHTML =
       upcoming.length
         ? upcoming.map(w => `
           <p>
             <strong>${esc(w.title)}</strong>
             <br>
-            <small>
-              Due ${esc(dateLabel(w.dueDate))}
-            </small>
+            <small>Due ${esc(dateLabel(w.dueDate))}</small>
           </p>
-        `).join('')
+        `).join("")
         : '<p class="muted">No upcoming work.</p>';
   }
 
-  // CLASSWORK TOPICS
+  // ==========================================
+  // CLASSWORK
+  // ==========================================
 
   function allTopics(c) {
     if (!c) return [];
@@ -360,56 +369,48 @@ document.addEventListener('DOMContentLoaded', () => {
     ])];
   }
 
-  // CLASSWORK LIST
-
   function renderClasswork() {
     const c = current();
     if (!c) return;
 
     const topics = allTopics(c);
-    const filter = $('classworkTopicFilter');
+    const filter = $("classworkTopicFilter");
     const previous = filter.value;
 
     filter.innerHTML =
       '<option value="all">All topics</option>' +
       topics.map(t => `
-        <option value="${esc(t)}">
-          ${esc(t)}
-        </option>
-      `).join('');
+        <option value="${esc(t)}">${esc(t)}</option>
+      `).join("");
 
     filter.value =
-      topics.includes(previous) ? previous : 'all';
+      topics.includes(previous) ? previous : "all";
 
     const shown =
-      filter.value === 'all'
+      filter.value === "all"
         ? c.work
         : c.work.filter(
-            w => (w.topic || '') === filter.value
+            w => (w.topic || "") === filter.value
           );
 
     const workCard = w => `
       <article class="work-item">
-        <h3>${esc(w.title || 'Untitled')}</h3>
+        <h3>${esc(w.title || "Untitled")}</h3>
 
         <p>
           ${esc(({
-            assignment: 'Assignment',
-            quiz: 'Quiz assignment',
-            question: 'Question',
-            material: 'Material'
+            assignment: "Assignment",
+            quiz: "Quiz assignment",
+            question: "Question",
+            material: "Material"
           })[w.type] || w.type)}
           ·
-          ${esc(
-            w.status === 'draft'
-              ? 'Draft'
-              : 'Assigned'
-          )}
+          ${w.status === "draft" ? "Draft" : "Assigned"}
           ·
           ${esc(dateLabel(w.dueDate))}
         </p>
 
-        <p>${esc(w.instructions || '')}</p>
+        <p>${esc(w.instructions || "")}</p>
 
         <button
           class="text-btn"
@@ -427,52 +428,43 @@ document.addEventListener('DOMContentLoaded', () => {
       </article>
     `;
 
-    let html = '';
+    let html = "";
 
     const groups =
-      filter.value === 'all'
+      filter.value === "all"
         ? topics
         : topics.filter(t => t === filter.value);
 
     groups.forEach(topic => {
-      const works =
-        shown.filter(w => w.topic === topic);
+      const works = shown.filter(w => w.topic === topic);
 
       html += `
         <section class="topic-section">
-
           <div class="topic-header">
             <h3>${esc(topic)}</h3>
 
             <button
               class="topic-toggle"
               data-toggle-topic="${esc(topic)}"
-              aria-label="Expand or collapse topic"
             >
-              ${collapsedTopics.has(topic) ? '⌄' : '⌃'}
+              ${collapsedTopics.has(topic) ? "⌄" : "⌃"}
             </button>
           </div>
 
           <div class="topic-items ${
-            collapsedTopics.has(topic)
-              ? 'collapsed'
-              : ''
+            collapsedTopics.has(topic) ? "collapsed" : ""
           }">
-
             ${
               works.length
-                ? works.map(workCard).join('')
+                ? works.map(workCard).join("")
                 : '<p class="muted">No work in this topic yet.</p>'
             }
-
           </div>
-
         </section>
       `;
     });
 
-    const ungrouped =
-      shown.filter(w => !w.topic);
+    const ungrouped = shown.filter(w => !w.topic);
 
     if (ungrouped.length) {
       html += `
@@ -481,76 +473,101 @@ document.addEventListener('DOMContentLoaded', () => {
             <h3>Without a topic</h3>
           </div>
 
-          ${ungrouped.map(workCard).join('')}
+          ${ungrouped.map(workCard).join("")}
         </section>
       `;
     }
 
-    $('classworkList').innerHTML =
+    $("classworkList").innerHTML =
       html || `
         <div class="empty-state">
           <h3>No classwork yet</h3>
-          <p>
-            Click Create to add an assignment or topic.
-          </p>
+          <p>Click Create to add an assignment or topic.</p>
         </div>
       `;
 
-    $$('[data-toggle-topic]').forEach(b => {
-      b.onclick = () => {
-        const t = b.dataset.toggleTopic;
+    $$("[data-toggle-topic]").forEach(button => {
+      button.onclick = () => {
+        const topic = button.dataset.toggleTopic;
 
-        if (collapsedTopics.has(t)) {
-          collapsedTopics.delete(t);
+        if (collapsedTopics.has(topic)) {
+          collapsedTopics.delete(topic);
         } else {
-          collapsedTopics.add(t);
+          collapsedTopics.add(topic);
         }
 
         renderClasswork();
       };
     });
 
-    $$('[data-edit-work]').forEach(b => {
-      b.onclick = () => {
+    $$("[data-edit-work]").forEach(button => {
+      button.onclick = () => {
         const work = current().work.find(
-          w => w.id === b.dataset.editWork
+          w => w.id === button.dataset.editWork
         );
 
-        openEditor(work);
+        if (!work) return;
+
+        if (work.type === "quiz" && work.formId) {
+          openRiversideForms(work.formId);
+        } else {
+          openEditor(work);
+        }
       };
     });
 
-    $$('[data-grade-work]').forEach(b => {
-      b.onclick = () =>
-        gradeAssignment(b.dataset.gradeWork);
+    $$("[data-grade-work]").forEach(button => {
+      button.onclick = () =>
+        gradeAssignment(button.dataset.gradeWork);
     });
   }
 
-  // ASSIGNMENT EDITOR OPTIONS
+  // ==========================================
+  // RIVERSIDE FORMS CONNECTION
+  // ==========================================
+
+  function openRiversideForms(existingFormId = null) {
+    const c = current();
+
+    if (!c) {
+      alert("Please open a class first.");
+      return;
+    }
+
+    const formId = existingFormId || id();
+
+    const params = new URLSearchParams({
+      id: formId,
+      classId: c.id,
+      source: "classroom"
+    });
+
+    window.location.href =
+      "forms.html?" + params.toString();
+  }
+
+  // ==========================================
+  // ASSIGNMENT EDITOR
+  // ==========================================
 
   function editorOptions() {
-    $('editorAssignmentClass').innerHTML =
+    $("editorAssignmentClass").innerHTML =
       data.classes.map(c => `
         <option value="${esc(c.id)}">
           ${esc(c.name)} — ${esc(c.section)}
         </option>
-      `).join('');
+      `).join("");
 
-    $('editorAssignmentClass').value =
-      currentClassId;
+    $("editorAssignmentClass").value = currentClassId;
 
-    $('editorAssignmentTopic').innerHTML =
+    $("editorAssignmentTopic").innerHTML =
       '<option value="">No topic</option>' +
       allTopics(current()).map(t => `
-        <option value="${esc(t)}">
-          ${esc(t)}
-        </option>
-      `).join('');
+        <option value="${esc(t)}">${esc(t)}</option>
+      `).join("");
   }
 
-  // OPEN FULL-PAGE EDITOR
-
-  function openEditor(work = null, type = 'assignment') {
+  function openEditor(work = null, type = "assignment") {
     const c = current();
     if (!c) return;
 
@@ -559,36 +576,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
     editorOptions();
 
-    const typeNames = {
-      assignment: 'Assignment',
-      quiz: 'Quiz assignment',
-      question: 'Question',
-      material: 'Material'
+    const names = {
+      assignment: "Assignment",
+      quiz: "Quiz assignment",
+      question: "Question",
+      material: "Material"
     };
 
-    $('assignmentEditorHeading').textContent =
-      typeNames[editingType] || 'Assignment';
+    $("assignmentEditorHeading").textContent =
+      names[editingType] || "Assignment";
 
-    $('editorAssignmentTitle').value =
-      work?.title || '';
+    $("editorAssignmentTitle").value =
+      work?.title || "";
 
-    $('editorAssignmentInstructions').value =
-      work?.instructions || '';
+    $("editorAssignmentInstructions").value =
+      work?.instructions || "";
 
-    $('editorAssignmentPoints').value =
+    $("editorAssignmentPoints").value =
       work?.points ??
-      (editingType === 'material' ? 0 : 100);
+      (editingType === "material" ? 0 : 100);
 
-    $('editorAssignmentDueDate').value =
-      work?.dueDate || '';
+    $("editorAssignmentDueDate").value =
+      work?.dueDate || "";
 
-    $('editorAssignmentTopic').value =
-      work?.topic || '';
+    $("editorAssignmentTopic").value =
+      work?.topic || "";
 
-    $('editorAssignmentCategory').value =
+    $("editorAssignmentCategory").value =
       editingType;
 
-    $('assignmentAttachments').innerHTML =
+    $("assignmentAttachments").innerHTML =
       (work?.attachments || []).map(a => `
         <p>
           🔗
@@ -600,39 +617,34 @@ document.addEventListener('DOMContentLoaded', () => {
             ${esc(a.label || a.url)}
           </a>
         </p>
-      `).join('');
+      `).join("");
 
-    $('assignmentSaveStatus').textContent =
+    $("assignmentSaveStatus").textContent =
       work
-        ? (
-            work.status === 'draft'
-              ? 'Draft'
-              : 'Assigned'
-          )
-        : 'Unsaved changes';
+        ? work.status === "draft"
+          ? "Draft"
+          : "Assigned"
+        : "Unsaved changes";
 
-    view('assignmentEditor');
+    view("assignmentEditor");
   }
-
-  // SAVE ASSIGNMENT
 
   function saveEditor(status) {
     const title =
-      $('editorAssignmentTitle').value.trim();
+      $("editorAssignmentTitle").value.trim();
 
     if (!title) {
-      alert('Enter an assignment title.');
-      $('editorAssignmentTitle').focus();
+      alert("Enter an assignment title.");
+      $("editorAssignmentTitle").focus();
       return;
     }
 
     const source = current();
     if (!source) return;
 
-    const target =
-      data.classes.find(
-        c => c.id === $('editorAssignmentClass').value
-      ) || source;
+    const target = data.classes.find(
+      c => c.id === $("editorAssignmentClass").value
+    ) || source;
 
     let work = source.work.find(
       w => w.id === editingWorkId
@@ -658,14 +670,14 @@ document.addEventListener('DOMContentLoaded', () => {
     Object.assign(work, {
       title,
       instructions:
-        $('editorAssignmentInstructions').value.trim(),
+        $("editorAssignmentInstructions").value.trim(),
       points: Math.max(
         0,
-        Number($('editorAssignmentPoints').value) || 0
+        Number($("editorAssignmentPoints").value) || 0
       ),
-      dueDate: $('editorAssignmentDueDate').value,
-      topic: $('editorAssignmentTopic').value,
-      type: $('editorAssignmentCategory').value,
+      dueDate: $("editorAssignmentDueDate").value,
+      topic: $("editorAssignmentTopic").value,
+      type: $("editorAssignmentCategory").value,
       status
     });
 
@@ -674,19 +686,22 @@ document.addEventListener('DOMContentLoaded', () => {
     currentClassId = target.id;
 
     openClass(target.id);
-    classTab('classwork');
+    classTab("classwork");
   }
 
-  // STUDENT ROSTER
+  // ==========================================
+  // STUDENTS
+  // ==========================================
 
   function renderStudents() {
     const c = current();
     if (!c) return;
 
-    $('classStudentList').innerHTML =
+    $("classStudentList").innerHTML =
       c.students.map(sid => {
         const s = getStudent(sid);
-        if (!s) return '';
+
+        if (!s) return "";
 
         return `
           <tr>
@@ -695,27 +710,29 @@ document.addEventListener('DOMContentLoaded', () => {
             <td>${s.grade}</td>
           </tr>
         `;
-      }).join('') ||
+      }).join("") ||
       '<tr><td colspan="3">No students enrolled.</td></tr>';
   }
 
+  // ==========================================
   // GRADES
+  // ==========================================
 
   function renderGrades() {
     const c = current();
     if (!c) return;
 
-    $('classGradesBody').innerHTML =
+    $("classGradesBody").innerHTML =
       c.students.map(sid => {
         const s = getStudent(sid);
-        if (!s) return '';
+        if (!s) return "";
 
         let earned = 0;
         let possible = 0;
         let count = 0;
 
         c.work
-          .filter(w => w.status !== 'draft')
+          .filter(w => w.status !== "draft")
           .forEach(w => {
             const score = w.grades?.[sid];
 
@@ -738,87 +755,84 @@ document.addEventListener('DOMContentLoaded', () => {
                 possible
                   ? Math.round(
                       earned / possible * 100
-                    ) + '%'
-                  : 'Not graded'
+                    ) + "%"
+                  : "Not graded"
               }
             </td>
           </tr>
         `;
-      }).join('') ||
+      }).join("") ||
       '<tr><td colspan="3">No students enrolled.</td></tr>';
   }
-
-  // ENTER STUDENT GRADES
 
   function gradeAssignment(workId) {
     const c = current();
 
-    const w = c?.work.find(
+    const work = c?.work.find(
       w => w.id === workId
     );
 
-    if (!w) return;
+    if (!work) return;
 
     if (!c.students.length) {
-      alert('Add students to the class first.');
+      alert("Add students to the class first.");
       return;
     }
 
-    w.grades ||= {};
+    work.grades ||= {};
 
     for (const sid of c.students) {
-      const s = getStudent(sid);
-      if (!s) continue;
+      const student = getStudent(sid);
+      if (!student) continue;
 
       const value = prompt(
-        `${w.title}\n${s.name}\nScore out of ${w.points} (Cancel to stop):`,
-        w.grades[sid] ?? ''
+        `${work.title}\n${student.name}\nScore out of ${work.points} (Cancel to stop):`,
+        work.grades[sid] ?? ""
       );
 
       if (value === null) break;
-      if (value.trim() === '') continue;
+      if (value.trim() === "") continue;
 
       const score = Number(value);
 
       if (
         !Number.isFinite(score) ||
         score < 0 ||
-        score > Number(w.points)
+        score > Number(work.points)
       ) {
-        alert('Invalid score.');
+        alert("Invalid score.");
         continue;
       }
 
-      w.grades[sid] = score;
+      work.grades[sid] = score;
     }
 
     save();
     renderGrades();
   }
 
+  // ==========================================
   // CALENDAR
+  // ==========================================
 
   function renderCalendar() {
     const y = calendarDate.getFullYear();
     const m = calendarDate.getMonth();
 
-    $('calendarMonth').textContent =
-      calendarDate.toLocaleDateString(
-        'en-US',
-        {
-          month: 'long',
-          year: 'numeric'
-        }
-      );
+    $("calendarMonth").textContent =
+      calendarDate.toLocaleDateString("en-US", {
+        month: "long",
+        year: "numeric"
+      });
 
     let html = [
-      'Sun', 'Mon', 'Tue', 'Wed',
-      'Thu', 'Fri', 'Sat'
+      "Sun", "Mon", "Tue", "Wed",
+      "Thu", "Fri", "Sat"
     ].map(day => `
       <div class="calendar-day">
         <strong>${day}</strong>
       </div>
-    `).join('');
+    `).join("");
 
     html += '<div class="calendar-day"></div>'
       .repeat(new Date(y, m, 1).getDay());
@@ -828,12 +842,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     for (let day = 1; day <= daysInMonth; day++) {
       const iso =
-        `${y}-${String(m + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        `${y}-${String(m + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 
       const events = data.classes.flatMap(c =>
         c.work
           .filter(w =>
-            w.status !== 'draft' &&
+            w.status !== "draft" &&
             w.dueDate === iso
           )
           .map(w => `${c.section}: ${w.title}`)
@@ -848,32 +862,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
       html += `
         <div class="calendar-day ${
-          isToday ? 'today' : ''
+          isToday ? "today" : ""
         }">
           <strong>${day}</strong>
 
-          ${events.map(e => `
+          ${events.map(event => `
             <div class="calendar-event">
-              ${esc(e)}
+              ${esc(event)}
             </div>
-          `).join('')}
+          `).join("")}
         </div>
       `;
     }
 
-    $('calendarGrid').innerHTML = html;
+    $("calendarGrid").innerHTML = html;
   }
 
+  // ==========================================
   // TO REVIEW
+  // ==========================================
 
   function renderReview() {
     const works = data.classes.flatMap(c =>
       c.work
-        .filter(w => w.status !== 'draft')
+        .filter(w => w.status !== "draft")
         .map(w => ({ c, w }))
     );
 
-    $('reviewList').innerHTML =
+    $("reviewList").innerHTML =
       works.map(({ c, w }) => `
         <article class="work-item">
           <h3>${esc(w.title)}</h3>
@@ -887,43 +903,45 @@ document.addEventListener('DOMContentLoaded', () => {
             Student submissions are not simulated yet.
           </p>
         </article>
-      `).join('') ||
+      `).join("") ||
       '<div class="empty-state">Nothing to review yet.</div>';
   }
 
+  // ==========================================
   // NAVIGATION EVENTS
+  // ==========================================
 
-  $$('.nav-item[data-view]').forEach(b => {
-    b.addEventListener(
-      'click',
-      () => view(b.dataset.view)
-    );
+  $$(".nav-item[data-view]").forEach(button => {
+    button.onclick = () =>
+      view(button.dataset.view);
   });
 
-  $$('.class-tab').forEach(b => {
-    b.addEventListener(
-      'click',
-      () => classTab(b.dataset.classTab)
-    );
+  $$(".class-tab").forEach(button => {
+    button.onclick = () =>
+      classTab(button.dataset.classTab);
   });
 
-  $('backToClasses').onclick =
-    () => view('classes');
+  $("backToClasses").onclick =
+    () => view("classes");
 
-  $('menuToggle').onclick = () =>
-    $('sidebar').classList.toggle('collapsed');
+  $("menuToggle").onclick = () =>
+    $("sidebar").classList.toggle("collapsed");
 
+  // ==========================================
   // CREATE CLASS
+  // ==========================================
 
-  $('homeCreateClass').onclick =
-    $('createClassButton').onclick =
-      () => $('createClassDialog').showModal();
+  const openCreateClass = () =>
+    $("createClassDialog").showModal();
 
-  $('cancelCreateClass').onclick =
-    () => $('createClassDialog').close();
+  $("homeCreateClass").onclick = openCreateClass;
+  $("createClassButton").onclick = openCreateClass;
 
-  $('createClassForm').onsubmit = e => {
-    e.preventDefault();
+  $("cancelCreateClass").onclick =
+    () => $("createClassDialog").close();
+
+  $("createClassForm").onsubmit = event => {
+    event.preventDefault();
 
     const c = {
       id: id(),
@@ -931,10 +949,10 @@ document.addEventListener('DOMContentLoaded', () => {
         .toString(36)
         .slice(2, 8)
         .toUpperCase(),
-      name: $('newClassName').value.trim(),
-      section: $('newClassSection').value.trim(),
-      room: $('newClassRoom').value.trim(),
-      subject: $('newClassSubject').value,
+      name: $("newClassName").value.trim(),
+      section: $("newClassSection").value.trim(),
+      room: $("newClassRoom").value.trim(),
+      subject: $("newClassSubject").value,
       students: [],
       announcements: [],
       work: [],
@@ -946,17 +964,19 @@ document.addEventListener('DOMContentLoaded', () => {
     data.classes.push(c);
     save();
 
-    $('createClassForm').reset();
-    $('createClassDialog').close();
+    $("createClassForm").reset();
+    $("createClassDialog").close();
 
     openClass(c.id);
   };
 
-  // POST ANNOUNCEMENTS
+  // ==========================================
+  // ANNOUNCEMENTS
+  // ==========================================
 
-  $('postAnnouncement').onclick = () => {
+  $("postAnnouncement").onclick = () => {
     const text =
-      $('announcementText').value.trim();
+      $("announcementText").value.trim();
 
     if (!text || !current()) return;
 
@@ -968,54 +988,63 @@ document.addEventListener('DOMContentLoaded', () => {
 
     save();
 
-    $('announcementText').value = '';
+    $("announcementText").value = "";
     renderStream();
   };
 
-  // CREATE DROPDOWN
+  // ==========================================
+  // CREATE CLASSWORK MENU
+  // ==========================================
 
-  $('openCreateWork').onclick = () => {
-    const menu = $('createWorkMenu');
+  $("openCreateWork").onclick = () => {
+    const menu = $("createWorkMenu");
 
     menu.hidden = !menu.hidden;
 
-    $('openCreateWork').setAttribute(
-      'aria-expanded',
+    $("openCreateWork").setAttribute(
+      "aria-expanded",
       String(!menu.hidden)
     );
   };
 
-  document.addEventListener('click', e => {
-    if (!e.target.closest('.create-menu-container')) {
-      $('createWorkMenu').hidden = true;
+  document.addEventListener("click", event => {
+    if (
+      !event.target.closest("#openCreateWork") &&
+      !event.target.closest("#createWorkMenu")
+    ) {
+      $("createWorkMenu").hidden = true;
 
-      $('openCreateWork').setAttribute(
-        'aria-expanded',
-        'false'
+      $("openCreateWork").setAttribute(
+        "aria-expanded",
+        "false"
       );
     }
   });
 
-  $$('[data-create-type]').forEach(b => {
-    b.onclick = () => {
-      $('createWorkMenu').hidden = true;
+  $$("[data-create-type]").forEach(button => {
+    button.onclick = () => {
+      $("createWorkMenu").hidden = true;
 
-      $('openCreateWork').setAttribute(
-        'aria-expanded',
-        'false'
+      $("openCreateWork").setAttribute(
+        "aria-expanded",
+        "false"
       );
 
-      const type = b.dataset.createType;
+      const type = button.dataset.createType;
 
-      if (type === 'topic') {
-        $('createTopicDialog').showModal();
+      if (type === "topic") {
+        $("createTopicDialog").showModal();
         return;
       }
 
-      if (type === 'reuse') {
-        alert(
-          'Reuse post will be added in a later update.'
-        );
+      if (type === "reuse") {
+        alert("Reuse post will be added later.");
+        return;
+      }
+
+      // NEW: Open Riverside Forms for quizzes.
+      if (type === "quiz") {
+        openRiversideForms();
         return;
       }
 
@@ -1023,12 +1052,14 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   });
 
-  // CREATE TOPIC
+  // ==========================================
+  // TOPICS
+  // ==========================================
 
-  $('createTopicForm').onsubmit = e => {
-    e.preventDefault();
+  $("createTopicForm").onsubmit = event => {
+    event.preventDefault();
 
-    const name = $('newTopicName').value.trim();
+    const name = $("newTopicName").value.trim();
     const c = current();
 
     if (!name || !c) return;
@@ -1039,19 +1070,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     save();
 
-    $('createTopicForm').reset();
-    $('createTopicDialog').close();
+    $("createTopicForm").reset();
+    $("createTopicDialog").close();
 
     renderClasswork();
   };
 
-  $('cancelCreateTopic').onclick =
-    () => $('createTopicDialog').close();
+  $("cancelCreateTopic").onclick =
+    () => $("createTopicDialog").close();
 
-  $('classworkTopicFilter').onchange =
+  $("classworkTopicFilter").onchange =
     renderClasswork;
 
-  $('collapseTopics').onclick = () => {
+  $("collapseTopics").onclick = () => {
     const topics = allTopics(current());
 
     collapsedTopics =
@@ -1061,63 +1092,63 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renderClasswork();
 
-    $('collapseTopics').textContent =
+    $("collapseTopics").textContent =
       collapsedTopics.size
-        ? 'Expand all'
-        : 'Collapse all';
+        ? "Expand all"
+        : "Collapse all";
   };
 
-  // ASSIGNMENT EDITOR BUTTONS
+  // ==========================================
+  // ASSIGNMENT EDITOR EVENTS
+  // ==========================================
 
-  $('closeAssignmentEditor').onclick = () => {
+  $("closeAssignmentEditor").onclick = () => {
     openClass(currentClassId);
-    classTab('classwork');
+    classTab("classwork");
   };
 
-  $('saveAssignmentDraft').onclick =
-    () => saveEditor('draft');
+  $("saveAssignmentDraft").onclick =
+    () => saveEditor("draft");
 
-  $('publishAssignment').onclick =
-    () => saveEditor('assigned');
+  $("publishAssignment").onclick =
+    () => saveEditor("assigned");
 
-  $('assignmentMoreOptions').onclick = () =>
-    alert(
-      'Use Save draft or Assign. Scheduling will be added later.'
-    );
+  $("assignmentMoreOptions").onclick = () =>
+    alert("Scheduling will be added later.");
 
-  $('editorAssignmentClass').onchange = () => {
+  $("editorAssignmentClass").onchange = () => {
     const c = data.classes.find(
-      c => c.id === $('editorAssignmentClass').value
+      c => c.id === $("editorAssignmentClass").value
     );
 
     if (!c) return;
 
-    $('editorAssignmentTopic').innerHTML =
+    $("editorAssignmentTopic").innerHTML =
       '<option value="">No topic</option>' +
       allTopics(c).map(t => `
-        <option value="${esc(t)}">
-          ${esc(t)}
-        </option>
-      `).join('');
+        <option value="${esc(t)}">${esc(t)}</option>
+      `).join("");
   };
 
   [
-    'editorAssignmentTitle',
-    'editorAssignmentInstructions',
-    'editorAssignmentPoints',
-    'editorAssignmentDueDate',
-    'editorAssignmentTopic'
+    "editorAssignmentTitle",
+    "editorAssignmentInstructions",
+    "editorAssignmentPoints",
+    "editorAssignmentDueDate",
+    "editorAssignmentTopic"
   ].forEach(key => {
-    $(key).addEventListener('input', () => {
-      $('assignmentSaveStatus').textContent =
-        'Unsaved changes';
+    $(key).addEventListener("input", () => {
+      $("assignmentSaveStatus").textContent =
+        "Unsaved changes";
     });
   });
 
+  // ==========================================
   // ATTACHMENTS
+  // ==========================================
 
-  $('attachLink').onclick = () => {
-    const url = prompt('Enter an https:// link:');
+  $("attachLink").onclick = () => {
+    const url = prompt("Enter a web link:");
 
     if (!url) return;
 
@@ -1125,14 +1156,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const parsed = new URL(url);
 
       if (
-        parsed.protocol !== 'https:' &&
-        parsed.protocol !== 'http:'
+        parsed.protocol !== "https:" &&
+        parsed.protocol !== "http:"
       ) {
-        throw Error();
+        throw new Error("Invalid protocol");
       }
 
-      $('assignmentAttachments').insertAdjacentHTML(
-        'beforeend',
+      $("assignmentAttachments").insertAdjacentHTML(
+        "beforeend",
         `
           <p>
             🔗
@@ -1148,73 +1179,72 @@ document.addEventListener('DOMContentLoaded', () => {
       );
 
       alert(
-        'Link preview added. Saving attachments permanently will be added in a later update.'
+        "Link preview added. Permanent attachment saving will be added later."
       );
     } catch {
-      alert('Please enter a valid web link.');
+      alert("Please enter a valid web link.");
     }
   };
 
-  $('attachFile').onclick = () =>
+  $("attachFile").onclick = () =>
     alert(
-      'File uploads need storage support. For now, add a link to a file.'
+      "File uploads require additional storage support."
     );
 
-  $('attachForm').onclick = () =>
-    alert(
-      'The full Riverside Forms editor is our next project.'
-    );
+  // NEW: The Forms attachment button now works.
+  $("attachForm").onclick = () =>
+    openRiversideForms();
 
+  // ==========================================
   // ADD STUDENTS
+  // ==========================================
 
-  $('addStudentsButton').onclick = () => {
+  $("addStudentsButton").onclick = () => {
     const c = current();
     if (!c) return;
 
-    $('availableStudents').innerHTML =
+    $("availableStudents").innerHTML =
       students.map(s => `
         <label style="display:block;padding:10px">
           <input
             class="student-checkbox"
             type="checkbox"
             value="${esc(s.id)}"
-            ${
-              c.students.includes(s.id)
-                ? 'checked'
-                : ''
-            }
+            ${c.students.includes(s.id) ? "checked" : ""}
           >
 
           ${esc(s.name)} (${esc(s.id)})
         </label>
-      `).join('');
+      `).join("");
 
-    $('addStudentsDialog').showModal();
+    $("addStudentsDialog").showModal();
   };
 
-  $('closeAddStudents').onclick =
-    () => $('addStudentsDialog').close();
+  $("closeAddStudents").onclick =
+    () => $("addStudentsDialog").close();
 
-  $('saveClassStudents').onclick = () => {
+  $("saveClassStudents").onclick = () => {
     const c = current();
     if (!c) return;
 
     c.students =
-      $$('.student-checkbox:checked')
+      $$(".student-checkbox:checked")
         .map(el => el.value);
 
     save();
 
-    $('addStudentsDialog').close();
+    $("addStudentsDialog").close();
 
     renderStudents();
     renderGrades();
     renderClasses();
   };
 
-  // CALENDAR BUTTONS
+  // ==========================================
+  // CALENDAR EVENTS
+  // ==========================================
 
-  $('previousMonth').onclick = () => {
+  $("previousMonth").onclick = () => {
     calendarDate = new Date(
       calendarDate.getFullYear(),
       calendarDate.getMonth() - 1,
@@ -1224,7 +1254,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCalendar();
   };
 
-  $('nextMonth').onclick = () => {
+  $("nextMonth").onclick = () => {
     calendarDate = new Date(
       calendarDate.getFullYear(),
       calendarDate.getMonth() + 1,
@@ -1234,8 +1264,10 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCalendar();
   };
 
-  // START CLASSROOM
+  // ==========================================
+  // START APPLICATION
+  // ==========================================
 
   renderClasses();
-  view('home');
+  view("home");
 });
