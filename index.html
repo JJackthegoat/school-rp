@@ -4,198 +4,327 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>School RP | Middle School Simulator</title>
+
+    <title>Riverside Middle School | School RP</title>
+
     <link rel="stylesheet" href="style.css">
     <script src="script.js" defer></script>
 </head>
+
 <body>
 
-<header>
-    <h1>School RP</h1>
-    <h2>Riverside Middle School | Teacher Portal</h2>
-</header>
+    <!-- SCHOOL HEADER -->
+    <header>
+        <h1>Riverside Middle School</h1>
+        <p>Teacher Dashboard | 2026–2027</p>
+    </header>
 
-<main>
+    <main>
 
-    <!-- TEACHER PROFILE -->
-    <section class="dashboard-card" id="teacherSetup">
-        <h2>Teacher Profile Setup</h2>
-        <p>Set up your teaching position.</p>
+        <!-- WELCOME -->
+        <section class="dashboard-card" id="welcome">
+            <h2>Teacher Dashboard</h2>
+            <p>
+                Welcome to Riverside Middle School!
+                Manage your classroom, teaching schedule,
+                and school day from this dashboard.
+            </p>
+        </section>
 
-        <label for="teacherName">Teacher Name</label>
-        <input
-            type="text"
-            id="teacherName"
-            placeholder="Example: Mr. Smith"
-        >
+        <!-- TEACHER PROFILE -->
+        <section class="dashboard-card" id="teacherSetup">
 
-        <label for="teacherSubject">Subject</label>
-        <select id="teacherSubject">
-            <option value="Math">Mathematics</option>
-            <option value="ELA">English Language Arts</option>
-            <option value="Science">Science</option>
-            <option value="Social Studies">Social Studies</option>
-            <option value="Physical Education">Physical Education</option>
-            <option value="Art">Art</option>
-            <option value="Music">Music</option>
-        </select>
+            <h2>Teacher Profile</h2>
 
-        <label for="teacherGrade">Grade Level</label>
-        <select id="teacherGrade">
-            <option value="6">6th Grade</option>
-            <option value="7">7th Grade</option>
-            <option value="8">8th Grade</option>
-            <option value="6-8">Grades 6–8</option>
-        </select>
+            <p>
+                Enter your teacher information to begin.
+                Your profile will be saved on this device.
+            </p>
 
-        <button type="button" id="saveTeacher">
-            Save Teacher Profile
-        </button>
+            <div class="form-group">
+                <label for="teacherName">
+                    Teacher Name
+                </label>
 
-        <p id="profileMessage" role="status"></p>
-    </section>
+                <input
+                    type="text"
+                    id="teacherName"
+                    placeholder="Example: Mr. Johnson"
+                >
+            </div>
 
-    <!-- DASHBOARD -->
-    <h2>Teacher Dashboard</h2>
-    <p>Welcome back, Teacher!</p>
+            <div class="form-group">
+                <label for="teacherSubject">
+                    Teaching Subject
+                </label>
 
-    <!-- SCHOOL INFORMATION -->
-    <section class="dashboard-card">
-        <h3>School Information</h3>
+                <select id="teacherSubject">
+                    <option value="Math">Mathematics</option>
+                    <option value="ELA">English Language Arts</option>
+                    <option value="Science">Science</option>
+                    <option value="Social Studies">Social Studies</option>
+                    <option value="PE">Physical Education</option>
+                    <option value="Art">Art</option>
+                    <option value="Music">Music</option>
+                </select>
+            </div>
 
-        <p><strong>School:</strong> Riverside Middle School</p>
-        <p><strong>Grades:</strong> 6–8</p>
-        <p><strong>School Year:</strong> 2026–2027</p>
-        <p><strong>Status:</strong> Not Started</p>
-    </section>
+            <div class="form-group">
+                <label for="teacherGrade">
+                    Grade Level
+                </label>
 
-    <!-- CLASSES -->
-    <section class="dashboard-card">
-        <h3>My Classes</h3>
-        <p>View your teaching schedule and class rosters.</p>
-        <button type="button">View Classes</button>
-    </section>
+                <select id="teacherGrade">
+                    <option value="6">6th Grade</option>
+                    <option value="7">7th Grade</option>
+                    <option value="8">8th Grade</option>
+                    <option value="6-8">Grades 6–8</option>
+                </select>
+            </div>
 
-    <!-- ATTENDANCE -->
-    <section class="dashboard-card">
-        <h3>Attendance</h3>
-        <p>Take daily attendance for your students.</p>
-        <button type="button">Take Attendance</button>
-    </section>
+            <button id="saveTeacher">
+                Save Teacher Profile
+            </button>
 
-    <!-- GRADEBOOK -->
-    <section class="dashboard-card">
-        <h3>Gradebook</h3>
-        <p>Manage assignments, quizzes, and student grades.</p>
-        <button type="button">Open Gradebook</button>
-    </section>
+            <p id="profileMessage" role="status"></p>
 
-    <!-- SCHOOL DAY -->
-    <section class="dashboard-card" id="schoolDay">
-        <h3>School Day</h3>
-        <p>Follow your daily teaching schedule.</p>
+        </section>
 
-        <button type="button" id="startSchoolDay">
-            Start School Day
-        </button>
+        <!-- GENESIS -->
+        <section class="dashboard-card" id="genesisAccess">
 
-        <p id="schoolDayStatus">Status: Not Started</p>
+            <h2>Genesis Student Information System</h2>
 
-        <h3>Daily Bell Schedule</h3>
+            <p>
+                Access the school's Genesis-style portal
+                to manage student records, attendance,
+                grades, and class schedules.
+            </p>
 
-        <table border="1" cellpadding="10"
-               style="width:100%; border-collapse:collapse;">
-            <thead>
-                <tr>
-                    <th>Period</th>
-                    <th>Time</th>
-                    <th>Activity</th>
-                </tr>
-            </thead>
+            <a
+                href="genesis.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="genesis-button"
+                style="
+                    display: inline-block;
+                    background-color: #245b98;
+                    color: white;
+                    padding: 14px 25px;
+                    border-radius: 6px;
+                    font-weight: bold;
+                    text-decoration: none;
+                    margin-top: 10px;
+                "
+            >
+                Open Genesis ↗
+            </a>
 
-            <tbody>
-                <tr>
-                    <td>Morning Prep</td>
-                    <td>7:15–8:00 AM</td>
-                    <td>Prepare Classroom & Lessons</td>
-                </tr>
+            <p style="font-size: 12px; color: #667085;">
+                Opens the fictional Genesis portal
+                in a new browser tab.
+            </p>
 
-                <tr>
-                    <td>Homeroom</td>
-                    <td>8:00–8:15 AM</td>
-                    <td>Attendance</td>
-                </tr>
+        </section>
 
-                <tr>
-                    <td>Period 1</td>
-                    <td>8:20–9:05 AM</td>
-                    <td>Class</td>
-                </tr>
+        <!-- SCHOOL INFORMATION -->
+        <section class="dashboard-card" id="schoolInfo">
 
-                <tr>
-                    <td>Period 2</td>
-                    <td>9:10–9:55 AM</td>
-                    <td>Class</td>
-                </tr>
+            <h2>School Information</h2>
 
-                <tr>
-                    <td>Period 3</td>
-                    <td>10:00–10:45 AM</td>
-                    <td>Class</td>
-                </tr>
+            <p>
+                <strong>School:</strong>
+                Riverside Middle School
+            </p>
 
-                <tr>
-                    <td>Period 4</td>
-                    <td>10:50–11:35 AM</td>
-                    <td>Planning Period</td>
-                </tr>
+            <p>
+                <strong>Grade Levels:</strong>
+                6–8
+            </p>
 
-                <tr>
-                    <td>Lunch</td>
-                    <td>11:40 AM–12:10 PM</td>
-                    <td>Lunch Break</td>
-                </tr>
+            <p>
+                <strong>School Year:</strong>
+                2026–2027
+            </p>
 
-                <tr>
-                    <td>Period 5</td>
-                    <td>12:15–1:00 PM</td>
-                    <td>Class</td>
-                </tr>
+            <p>
+                <strong>Student Dismissal:</strong>
+                2:45 PM
+            </p>
 
-                <tr>
-                    <td>Period 6</td>
-                    <td>1:05–1:50 PM</td>
-                    <td>Class</td>
-                </tr>
+            <p>
+                <strong>Teacher Dismissal:</strong>
+                3:50 PM
+            </p>
 
-                <tr>
-                    <td>Period 7</td>
-                    <td>1:55–2:40 PM</td>
-                    <td>Class</td>
-                </tr>
+        </section>
 
-                <tr>
-                    <td>Student Dismissal</td>
-                    <td>2:45 PM</td>
-                    <td>Students Leave School</td>
-                </tr>
+        <!-- MY CLASSES -->
+        <section class="dashboard-card" id="myClasses">
 
-                <tr>
-                    <td>After-School Prep</td>
-                    <td>2:50–3:50 PM</td>
-                    <td>Grading, Planning & Classroom Tasks</td>
-                </tr>
+            <h2>My Classes</h2>
 
-                <tr>
-                    <td>Teacher Dismissal</td>
-                    <td>3:50 PM</td>
-                    <td>End of Workday</td>
-                </tr>
-            </tbody>
-        </table>
-    </section>
+            <p>
+                View your teaching assignments
+                and classroom information.
+            </p>
 
-</main>
+            <p>
+                Student rosters, attendance, and
+                grades are managed through Genesis.
+            </p>
+
+            <a href="genesis.html"
+               target="_blank"
+               rel="noopener noreferrer">
+                View Class Records ↗
+            </a>
+
+        </section>
+
+        <!-- SCHOOL DAY -->
+        <section class="dashboard-card" id="schoolDay">
+
+            <h2>School Day Simulation</h2>
+
+            <p>
+                Start your school day and follow
+                the Riverside Middle School
+                bell schedule.
+            </p>
+
+            <button id="startSchoolDay">
+                Start School Day
+            </button>
+
+            <p id="schoolDayStatus" role="status">
+                Status: Not Started
+            </p>
+
+            <h3>Daily Bell Schedule</h3>
+
+            <div style="overflow-x: auto;">
+
+                <table
+                    border="1"
+                    cellpadding="10"
+                    cellspacing="0"
+                    style="
+                        border-collapse: collapse;
+                        width: 100%;
+                        text-align: left;
+                    "
+                >
+
+                    <thead>
+                        <tr>
+                            <th>Period</th>
+                            <th>Time</th>
+                            <th>Activity</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        <tr>
+                            <td>Morning Prep</td>
+                            <td>7:15–8:00 AM</td>
+                            <td>Classroom Preparation</td>
+                        </tr>
+
+                        <tr>
+                            <td>Homeroom</td>
+                            <td>8:00–8:15 AM</td>
+                            <td>Attendance</td>
+                        </tr>
+
+                        <tr>
+                            <td>Period 1</td>
+                            <td>8:20–9:05 AM</td>
+                            <td>Class</td>
+                        </tr>
+
+                        <tr>
+                            <td>Period 2</td>
+                            <td>9:10–9:55 AM</td>
+                            <td>Class</td>
+                        </tr>
+
+                        <tr>
+                            <td>Period 3</td>
+                            <td>10:00–10:45 AM</td>
+                            <td>Class</td>
+                        </tr>
+
+                        <tr>
+                            <td>Period 4</td>
+                            <td>10:50–11:35 AM</td>
+                            <td>Planning Period</td>
+                        </tr>
+
+                        <tr>
+                            <td>Lunch</td>
+                            <td>11:40 AM–12:10 PM</td>
+                            <td>Lunch Break</td>
+                        </tr>
+
+                        <tr>
+                            <td>Period 5</td>
+                            <td>12:15–1:00 PM</td>
+                            <td>Class</td>
+                        </tr>
+
+                        <tr>
+                            <td>Period 6</td>
+                            <td>1:05–1:50 PM</td>
+                            <td>Class</td>
+                        </tr>
+
+                        <tr>
+                            <td>Period 7</td>
+                            <td>1:55–2:40 PM</td>
+                            <td>Class</td>
+                        </tr>
+
+                        <tr>
+                            <td>Student Dismissal</td>
+                            <td>2:45 PM</td>
+                            <td>Students Dismissed</td>
+                        </tr>
+
+                        <tr>
+                            <td>After-School Prep</td>
+                            <td>2:50–3:50 PM</td>
+                            <td>Grading and Planning</td>
+                        </tr>
+
+                        <tr>
+                            <td>Teacher Dismissal</td>
+                            <td>3:50 PM</td>
+                            <td>End of Workday</td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer style="
+        text-align: center;
+        padding: 20px;
+        font-size: 13px;
+        color: #667085;
+    ">
+        Riverside Middle School |
+        School RP Simulation |
+        2026–2027
+    </footer>
 
 </body>
 </html>
