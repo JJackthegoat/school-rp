@@ -1,0 +1,344 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>AI Students | Riverside Middle School</title>
+
+  <link rel="stylesheet" href="students.css">
+  <script src="students.js" defer></script>
+</head>
+
+<body>
+
+  <div class="app-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+      <div class="sidebar-brand">
+        <div class="school-logo">R</div>
+
+        <div>
+          <strong>Riverside</strong>
+          <span>Middle School</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+
+        <a href="index.html" class="nav-link">
+          <span>⌂</span>
+          Teacher Dashboard
+        </a>
+
+        <a href="classroom.html" class="nav-link">
+          <span>▣</span>
+          Classroom
+        </a>
+
+        <a href="genesis.html" class="nav-link">
+          <span>▤</span>
+          Genesis SIS
+        </a>
+
+        <a href="students.html" class="nav-link active">
+          <span>♙</span>
+          AI Students
+        </a>
+
+      </nav>
+
+      <div class="sidebar-footer">
+        School Year 2026–2027
+      </div>
+
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+
+      <header class="topbar">
+
+        <div>
+          <h1>AI Student Management</h1>
+          <p>Riverside Middle School</p>
+        </div>
+
+        <div class="teacher-profile">
+          <div id="teacherAvatar" class="avatar">T</div>
+
+          <span id="teacherName">Teacher</span>
+        </div>
+
+      </header>
+
+      <div class="page-content">
+
+        <!-- OVERVIEW -->
+        <section class="overview-grid">
+
+          <div class="stat-card">
+            <span>Total Students</span>
+            <strong id="totalStudents">0</strong>
+          </div>
+
+          <div class="stat-card">
+            <span>Active Students</span>
+            <strong id="activeStudents">0</strong>
+          </div>
+
+          <div class="stat-card">
+            <span>Assignments Completed</span>
+            <strong id="completedAssignments">0</strong>
+          </div>
+
+          <div class="stat-card">
+            <span>Student Messages</span>
+            <strong id="studentMessages">0</strong>
+          </div>
+
+        </section>
+
+        <!-- SIMULATION CONTROLS -->
+        <section class="panel">
+
+          <div class="panel-header">
+            <div>
+              <h2>Student Simulation</h2>
+
+              <p>
+                Control how fictional students
+                participate in your classes.
+              </p>
+            </div>
+          </div>
+
+          <div class="simulation-controls">
+
+            <button
+              id="runSimulation"
+              class="primary-button"
+            >
+              ▶ Run School Day
+            </button>
+
+            <button
+              id="simulateAssignments"
+              class="secondary-button"
+            >
+              Simulate Assignments
+            </button>
+
+            <button
+              id="simulateMessages"
+              class="secondary-button"
+            >
+              Generate Student Messages
+            </button>
+
+          </div>
+
+          <div id="simulationStatus" class="simulation-status">
+            Simulation ready.
+          </div>
+
+        </section>
+
+        <!-- STUDENT ROSTER -->
+        <section class="panel">
+
+          <div class="panel-header">
+
+            <div>
+              <h2>Student Roster</h2>
+
+              <p>
+                View and manage fictional
+                student profiles.
+              </p>
+            </div>
+
+            <button
+              id="addStudentButton"
+              class="primary-button"
+            >
+              + Add Student
+            </button>
+
+          </div>
+
+          <div class="roster-toolbar">
+
+            <input
+              type="search"
+              id="studentSearch"
+              placeholder="Search students..."
+            >
+
+            <select id="gradeFilter">
+              <option value="all">All Grades</option>
+              <option value="6">Grade 6</option>
+              <option value="7">Grade 7</option>
+              <option value="8">Grade 8</option>
+            </select>
+
+            <select id="classFilter">
+              <option value="all">All Classes</option>
+            </select>
+
+          </div>
+
+          <div class="table-wrapper">
+
+            <table class="student-table">
+
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Grade</th>
+                  <th>Personality</th>
+                  <th>Academic Level</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+
+              <tbody id="studentTableBody"></tbody>
+
+            </table>
+
+          </div>
+
+        </section>
+
+        <!-- RECENT ACTIVITY -->
+        <section class="panel">
+
+          <div class="panel-header">
+            <div>
+              <h2>Recent Student Activity</h2>
+              <p>Simulated classroom events.</p>
+            </div>
+
+            <button
+              id="clearActivity"
+              class="text-button"
+            >
+              Clear Activity
+            </button>
+          </div>
+
+          <div id="activityFeed" class="activity-feed">
+
+            <div class="empty-state">
+              No student activity yet.
+            </div>
+
+          </div>
+
+        </section>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- STUDENT PROFILE DIALOG -->
+  <dialog id="studentProfileDialog" class="student-dialog">
+
+    <div class="dialog-header">
+
+      <h2 id="profileStudentName">Student Profile</h2>
+
+      <button id="closeStudentProfile" class="close-button">
+        ×
+      </button>
+
+    </div>
+
+    <div id="studentProfileContent"></div>
+
+  </dialog>
+
+  <!-- ADD STUDENT DIALOG -->
+  <dialog id="addStudentDialog" class="student-dialog">
+
+    <div class="dialog-header">
+      <h2>Add Fictional Student</h2>
+
+      <button id="closeAddStudent" class="close-button">
+        ×
+      </button>
+    </div>
+
+    <form id="addStudentForm">
+
+      <label for="newStudentName">Student Name</label>
+
+      <input
+        id="newStudentName"
+        type="text"
+        placeholder="First and last name"
+        required
+      >
+
+      <label for="newStudentGrade">Grade Level</label>
+
+      <select id="newStudentGrade">
+        <option value="6">Grade 6</option>
+        <option value="7" selected>Grade 7</option>
+        <option value="8">Grade 8</option>
+      </select>
+
+      <label for="newStudentPersonality">Personality</label>
+
+      <select id="newStudentPersonality">
+        <option value="Friendly">Friendly</option>
+        <option value="Quiet">Quiet</option>
+        <option value="Curious">Curious</option>
+        <option value="Energetic">Energetic</option>
+        <option value="Independent">Independent</option>
+        <option value="Talkative">Talkative</option>
+      </select>
+
+      <label for="newStudentAcademic">Academic Level</label>
+
+      <select id="newStudentAcademic">
+        <option value="Developing">Developing</option>
+        <option value="On Track" selected>On Track</option>
+        <option value="Advanced">Advanced</option>
+      </select>
+
+      <div class="dialog-actions">
+
+        <button
+          type="button"
+          id="cancelAddStudent"
+          class="secondary-button"
+        >
+          Cancel
+        </button>
+
+        <button
+          type="submit"
+          class="primary-button"
+        >
+          Add Student
+        </button>
+
+      </div>
+
+    </form>
+
+  </dialog>
+
+  <footer class="simulation-footer">
+    Riverside Middle School — Fictional School RP Simulation
+  </footer>
+
+</body>
+</html>
