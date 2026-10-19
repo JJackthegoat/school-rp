@@ -1,0 +1,1695 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Riverside | Student & Parent Simulation</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #edf2f8;
+  color: #203047;
+  font-family: Arial, sans-serif;
+}
+
+header {
+  background: #244c80;
+  color: white;
+  padding: 22px 28px;
+}
+
+header h1 {
+  margin: 0 0 6px;
+  font-size: 25px;
+}
+
+header p {
+  margin: 0;
+  color: #d9e6f7;
+}
+
+nav {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  background: #18385f;
+  padding: 12px 20px;
+}
+
+nav button {
+  background: transparent;
+  color: white;
+  border: none;
+  padding: 11px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+nav button.active,
+nav button:hover {
+  background: #4779b8;
+}
+
+main {
+  max-width: 1250px;
+  margin: 25px auto;
+  padding: 0 16px;
+}
+
+.page {
+  display: none;
+}
+
+.page.active {
+  display: block;
+}
+
+.card {
+  background: white;
+  border: 1px solid #d8e0eb;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 18px;
+}
+
+.card h2,
+.card h3 {
+  margin-top: 0;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(170px, 1fr)
+  );
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.stat {
+  background: white;
+  padding: 20px;
+  border: 1px solid #d8e0eb;
+  border-radius: 8px;
+}
+
+.stat strong {
+  display: block;
+  font-size: 30px;
+  color: #244c80;
+  margin-top: 8px;
+}
+
+button {
+  cursor: pointer;
+}
+
+.primary {
+  background: #2867ac;
+  border: 0;
+  color: white;
+  border-radius: 5px;
+  padding: 10px 15px;
+}
+
+.secondary {
+  background: #e7eef7;
+  color: #244c80;
+  border: 1px solid #cbd8e8;
+  border-radius: 5px;
+  padding: 9px 13px;
+}
+
+.danger {
+  background: #a93636;
+  color: white;
+  border: 0;
+  border-radius: 5px;
+  padding: 10px 15px;
+}
+
+button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+input,
+select,
+textarea {
+  font: inherit;
+  padding: 10px;
+  border: 1px solid #bfcddd;
+  border-radius: 5px;
+  max-width: 100%;
+}
+
+textarea {
+  width: 100%;
+  min-height: 90px;
+  resize: vertical;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+}
+
+th,
+td {
+  text-align: left;
+  border-bottom: 1px solid #dce4ef;
+  padding: 12px;
+  font-size: 14px;
+}
+
+th {
+  background: #e7eef8;
+  color: #25476e;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.muted {
+  color: #66768c;
+  font-size: 13px;
+}
+
+.tag {
+  display: inline-block;
+  padding: 5px 9px;
+  border-radius: 4px;
+  background: #e7eef7;
+  font-size: 12px;
+}
+
+.tag.green {
+  background: #dcf5e5;
+  color: #176039;
+}
+
+.tag.red {
+  background: #fde7e7;
+  color: #9b2525;
+}
+
+.tag.yellow {
+  background: #fff1cc;
+  color: #805900;
+}
+
+.item {
+  border: 1px solid #dce4ef;
+  border-radius: 6px;
+  padding: 15px;
+  margin: 12px 0;
+}
+
+.item h3 {
+  margin: 0 0 8px;
+}
+
+.flex {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.form-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+
+.message {
+  border: 1px solid #dce4ef;
+  padding: 15px;
+  margin-bottom: 12px;
+  border-radius: 6px;
+}
+
+.message.parent {
+  border-left: 4px solid #2867ac;
+}
+
+.message.teacher {
+  border-left: 4px solid #28865b;
+  background: #f5fbf7;
+}
+
+.report-grid {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(230px, 1fr)
+  );
+  gap: 15px;
+}
+
+.report-course {
+  border: 1px solid #d9e2ee;
+  border-radius: 7px;
+  overflow: hidden;
+}
+
+.report-course .top {
+  background: #4779b8;
+  color: white;
+  padding: 15px;
+}
+
+.report-course .bottom {
+  padding: 15px;
+}
+
+.report-grade {
+  font-size: 30px;
+  font-weight: bold;
+}
+
+.notice {
+  background: #fff6da;
+  border: 1px solid #ebd18d;
+  padding: 13px;
+  border-radius: 6px;
+  margin-bottom: 18px;
+}
+
+#toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #203047;
+  color: white;
+  padding: 12px 18px;
+  border-radius: 6px;
+  display: none;
+  max-width: 320px;
+}
+
+@media print {
+  header,
+  nav,
+  button,
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    background: white;
+  }
+
+  .page {
+    display: none !important;
+  }
+
+  #reports.page {
+    display: block !important;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>Riverside Middle School</h1>
+  <p>Student & Parent Simulation | 2026–2027</p>
+</header>
+
+<nav>
+  <button data-page="overview" class="active">
+    Overview
+  </button>
+
+  <button data-page="students">
+    Students
+  </button>
+
+  <button data-page="submissions">
+    Student Work
+  </button>
+
+  <button data-page="parents">
+    Parent Inbox
+  </button>
+
+  <button data-page="reports">
+    Report Cards
+  </button>
+
+  <button data-page="settings">
+    Settings
+  </button>
+</nav>
+
+<main>
+
+<section id="overview" class="page active">
+  <h2>Simulation Overview</h2>
+
+  <div class="stats" id="stats"></div>
+
+  <div class="card">
+    <h2>Simulation Controls</h2>
+
+    <p>
+      Generate fictional student activity for your
+      Riverside Classroom assignments.
+    </p>
+
+    <div class="flex">
+      <button class="primary" id="runSimulation">
+        Simulate Student Activity
+      </button>
+
+      <button class="secondary" id="simulateParents">
+        Simulate Parent Messages
+      </button>
+
+      <button class="secondary" id="refreshAll">
+        Refresh Data
+      </button>
+    </div>
+
+    <p class="muted">
+      No assignments are graded automatically.
+      Grade student work through Genesis SIS.
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>Recent Activity</h2>
+    <div id="recentActivity"></div>
+  </div>
+</section>
+
+<section id="students" class="page">
+  <div class="flex-between">
+    <h2>Fictional Students</h2>
+
+    <button class="primary" id="fillClasses">
+      Set 15 Students Per Class
+    </button>
+  </div>
+
+  <div class="card">
+    <p class="muted">
+      Students are connected to their Classroom
+      rosters. Each class can have 15 students.
+    </p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Student ID</th>
+            <th>Name</th>
+            <th>Grade</th>
+            <th>Classes</th>
+          </tr>
+        </thead>
+
+        <tbody id="studentRows"></tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="submissions" class="page">
+  <h2>Student Assignments</h2>
+
+  <div class="card">
+    <div class="form-row">
+      <select id="submissionClass"></select>
+
+      <select id="submissionStatus">
+        <option value="all">All Statuses</option>
+        <option value="submitted">Submitted</option>
+        <option value="late">Late</option>
+        <option value="missing">Missing</option>
+        <option value="graded">Graded</option>
+        <option value="not-submitted">
+          Not Submitted
+        </option>
+      </select>
+    </div>
+
+    <div id="submissionList"></div>
+  </div>
+</section>
+
+<section id="parents" class="page">
+  <h2>Parent Inbox</h2>
+
+  <div class="card">
+    <div class="flex-between">
+      <p>
+        Messages from fictional parents.
+        Reply as the teacher.
+      </p>
+
+      <button class="primary" id="newParentMessages">
+        Generate Parent Messages
+      </button>
+    </div>
+
+    <div id="parentMessages"></div>
+  </div>
+</section>
+
+<section id="reports" class="page">
+  <h2>Student Report Cards</h2>
+
+  <div class="card">
+    <div class="form-row">
+      <select id="reportStudent"></select>
+
+      <select id="reportPeriod">
+        <option value="MP1">MP1</option>
+        <option value="MP2">MP2</option>
+        <option value="MP3">MP3</option>
+        <option value="MP4">MP4</option>
+        <option value="all">Full Year</option>
+      </select>
+
+      <button class="secondary" id="printReport">
+        Print Report Card
+      </button>
+    </div>
+
+    <div id="reportContent"></div>
+  </div>
+</section>
+
+<section id="settings" class="page">
+  <h2>Simulation Settings</h2>
+
+  <div class="card">
+    <h3>Automatic Activity</h3>
+
+    <label class="flex">
+      <input type="checkbox" id="autoSimulation">
+
+      Automatically simulate student activity
+      while this page is open
+    </label>
+
+    <p class="muted">
+      Automatic activity checks every 60 seconds.
+      GitHub Pages cannot run this simulation
+      while the website is closed.
+    </p>
+  </div>
+
+  <div class="card">
+    <h3>Connected Systems</h3>
+
+    <p>
+      <a href="classroom.html">
+        Riverside Classroom
+      </a>
+    </p>
+
+    <p>
+      <a href="genesis.html">
+        Genesis SIS
+      </a>
+    </p>
+
+    <p class="muted">
+      All systems share browser localStorage.
+      They must be opened on the same website
+      and in the same browser.
+    </p>
+  </div>
+
+  <div class="card">
+    <h3>Simulation Data</h3>
+
+    <button class="danger" id="clearSimulation">
+      Reset Simulation Activity
+    </button>
+
+    <p class="muted">
+      This resets simulated submissions and parent
+      conversations. It does not erase Classroom
+      assignments or Genesis grades.
+    </p>
+  </div>
+</section>
+
+</main>
+
+<div id="toast"></div>
+
+<script>
+"use strict";
+
+// =======================================
+// STORAGE
+// =======================================
+
+const CK = "schoolRP_classroom_v1";
+const SK = "riverside_ai_students_v1";
+const SIMK = "riverside_simulation_v2";
+
+function read(key, fallback) {
+  try {
+    return JSON.parse(localStorage.getItem(key)) ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+function save(key, data) {
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+    return true;
+  } catch {
+    alert("Could not save browser data.");
+    return false;
+  }
+}
+
+function classroom() {
+  const data = read(CK, { classes: [] });
+
+  if (!Array.isArray(data.classes)) {
+    data.classes = [];
+  }
+
+  return data;
+}
+
+function studentData() {
+  const data = read(SK, []);
+
+  return Array.isArray(data) ? data : [];
+}
+
+function simulation() {
+  const data = read(SIMK, {});
+
+  data.submissions ||= {};
+  data.missing ||= {};
+  data.messages ||= [];
+  data.activity ||= [];
+  data.settings ||= { auto: false };
+
+  return data;
+}
+
+function esc(value) {
+  return String(value ?? "").replace(
+    /[&<>"']/g,
+    char => ({
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#39;"
+    }[char])
+  );
+}
+
+function $(id) {
+  return document.getElementById(id);
+}
+
+function notify(message) {
+  const toast = $("toast");
+
+  toast.textContent = message;
+  toast.style.display = "block";
+
+  setTimeout(() => {
+    toast.style.display = "none";
+  }, 3000);
+}
+
+function logActivity(message) {
+  const data = simulation();
+
+  data.activity.unshift({
+    message,
+    date: new Date().toISOString()
+  });
+
+  data.activity = data.activity.slice(0, 100);
+
+  save(SIMK, data);
+}
+
+// =======================================
+// STUDENT GENERATION
+// =======================================
+
+const firstNames = [
+  "Alex", "Jordan", "Taylor", "Casey",
+  "Morgan", "Avery", "Riley", "Cameron",
+  "Jamie", "Quinn", "Dakota", "Reese",
+  "Peyton", "Skyler", "Charlie", "Logan",
+  "Harper", "Emerson", "Drew", "Finley",
+  "Blake", "Sage", "Rowan", "Kendall",
+  "Elliot", "Hayden", "Parker", "Bailey",
+  "Sam", "Sydney"
+];
+
+const lastNames = [
+  "Morgan", "Lee", "Brooks", "Rivera",
+  "Davis", "Wilson", "Parker", "Smith",
+  "Thompson", "Johnson", "Brown", "Taylor",
+  "Miller", "Walker", "Lewis", "Hall",
+  "Young", "Allen", "King", "Wright",
+  "Scott", "Green", "Adams", "Baker",
+  "Nelson", "Carter", "Mitchell", "Turner"
+];
+
+function getStudent(id) {
+  const student = studentData().find(
+    s => String(s.id) === String(id)
+  );
+
+  return student || {
+    id: String(id),
+    name: `Student ${id}`,
+    grade: 7
+  };
+}
+
+function enrolledClasses(studentId) {
+  return classroom().classes.filter(c =>
+    (c.students || []).some(
+      id => String(id) === String(studentId)
+    )
+  );
+}
+
+function fillClasses() {
+  const data = classroom();
+  const students = studentData();
+
+  if (!data.classes.length) {
+    notify("Create Classroom classes first.");
+    return;
+  }
+
+  const existingIds = new Set(
+    students.map(s => String(s.id))
+  );
+
+  let nextId = 20001;
+
+  function createStudent(grade) {
+    while (existingIds.has(String(nextId))) {
+      nextId++;
+    }
+
+    const id = String(nextId++);
+    const number = students.length;
+
+    const first =
+      firstNames[number % firstNames.length];
+
+    const last =
+      lastNames[
+        Math.floor(number / firstNames.length) %
+        lastNames.length
+      ];
+
+    const student = {
+      id,
+      name: `${first} ${last}`,
+      grade: Number(grade) || 7
+    };
+
+    students.push(student);
+    existingIds.add(id);
+
+    return id;
+  }
+
+  data.classes.forEach(c => {
+    c.students ||= [];
+
+    c.students = [
+      ...new Set(c.students.map(String))
+    ];
+
+    const grade =
+      c.grade ||
+      read("teacherProfile", {}).grade ||
+      7;
+
+    while (c.students.length < 15) {
+      c.students.push(createStudent(grade));
+    }
+  });
+
+  if (
+    save(SK, students) &&
+    save(CK, data)
+  ) {
+    logActivity(
+      "Updated Classroom rosters to at least 15 students."
+    );
+
+    notify("Classroom rosters updated!");
+    refresh();
+  }
+}
+
+// =======================================
+// ASSIGNMENT HELPERS
+// =======================================
+
+function assignmentKey(c, work, id) {
+  return `${c.id}::${work.id}::${id}`;
+}
+
+function publishedWork(c) {
+  return (c.work || []).filter(
+    w => w.status !== "draft"
+  );
+}
+
+function markingPeriod(work) {
+  if (/^MP[1-4]$/.test(work.gradingPeriod || "")) {
+    return work.gradingPeriod;
+  }
+
+  const date = new Date(
+    work.dueDate ||
+    work.publishedAt ||
+    Date.now()
+  );
+
+  const month = date.getMonth() + 1;
+
+  if (month >= 9 && month <= 11) return "MP1";
+  if (month === 12 || month === 1) return "MP2";
+  if (month >= 2 && month <= 4) return "MP3";
+
+  return "MP4";
+}
+
+function statusOf(c, work, studentId) {
+  const score = work.grades?.[studentId];
+
+  if (
+    score !== undefined &&
+    score !== null &&
+    score !== ""
+  ) {
+    return "graded";
+  }
+
+  const data = simulation();
+  const key = assignmentKey(c, work, studentId);
+
+  if (data.submissions[key]) {
+    return data.submissions[key].late
+      ? "late"
+      : "submitted";
+  }
+
+  if (data.missing[key]) return "missing";
+
+  return "not-submitted";
+}
+
+function percentage(works, studentId) {
+  let earned = 0;
+  let possible = 0;
+
+  works.forEach(work => {
+    const score = work.grades?.[studentId];
+    const max = Number(work.points);
+
+    if (
+      score === undefined ||
+      score === null ||
+      score === "" ||
+      !Number.isFinite(Number(score)) ||
+      !Number.isFinite(max) ||
+      max <= 0
+    ) {
+      return;
+    }
+
+    earned += Number(score);
+    possible += max;
+  });
+
+  return possible
+    ? earned / possible * 100
+    : null;
+}
+
+function letter(p) {
+  if (p === null) return "—";
+  if (p >= 97) return "A+";
+  if (p >= 93) return "A";
+  if (p >= 90) return "A-";
+  if (p >= 87) return "B+";
+  if (p >= 83) return "B";
+  if (p >= 80) return "B-";
+  if (p >= 77) return "C+";
+  if (p >= 73) return "C";
+  if (p >= 70) return "C-";
+  if (p >= 67) return "D+";
+  if (p >= 63) return "D";
+  if (p >= 60) return "D-";
+  return "F";
+}
+
+// =======================================
+// STUDENT SIMULATION
+// =======================================
+
+function makeAnswers(work) {
+  const questions = work.questions || [];
+
+  if (!questions.length) {
+    return [{
+      question: "Student response",
+      answer:
+        "I completed the assignment and submitted my work."
+    }];
+  }
+
+  return questions.map((question, index) => {
+    const title =
+      question.title ||
+      question.question ||
+      `Question ${index + 1}`;
+
+    const choices =
+      question.options ||
+      question.choices ||
+      [];
+
+    let answer =
+      "This is my answer based on what we learned in class.";
+
+    if (choices.length) {
+      const choice =
+        choices[Math.floor(Math.random() * choices.length)];
+
+      answer = String(
+        typeof choice === "object"
+          ? choice.text || choice.label || ""
+          : choice
+      );
+    }
+
+    return {
+      question: title,
+      answer
+    };
+  });
+}
+
+function runStudentSimulation() {
+  const data = simulation();
+  const classes = classroom().classes;
+
+  let submitted = 0;
+  let missing = 0;
+
+  classes.forEach(c => {
+    publishedWork(c).forEach(work => {
+      (c.students || []).forEach(studentId => {
+        studentId = String(studentId);
+
+        const key = assignmentKey(
+          c,
+          work,
+          studentId
+        );
+
+        if (
+          data.submissions[key] ||
+          data.missing[key] ||
+          statusOf(c, work, studentId) === "graded"
+        ) {
+          return;
+        }
+
+        // Some students wait until a later cycle.
+        const chance = Math.random();
+
+        if (chance < 0.25) return;
+
+        const due = work.dueDate
+          ? new Date(work.dueDate + "T23:59:59")
+          : null;
+
+        const overdue =
+          due && due.getTime() < Date.now();
+
+        // Occasionally leave overdue work missing.
+        if (overdue && chance < 0.38) {
+          data.missing[key] = {
+            markedAt: new Date().toISOString()
+          };
+
+          missing++;
+          return;
+        }
+
+        const late =
+          Boolean(overdue && Math.random() < 0.55);
+
+        data.submissions[key] = {
+          studentId,
+          classId: c.id,
+          assignmentId: work.id,
+          status: "submitted",
+          submittedAt: new Date().toISOString(),
+          late,
+          answers: makeAnswers(work)
+        };
+
+        submitted++;
+      });
+    });
+  });
+
+  save(SIMK, data);
+
+  logActivity(
+    `${submitted} student submissions and ` +
+    `${missing} missing assignments simulated.`
+  );
+
+  notify(
+    `${submitted} submissions · ${missing} missing`
+  );
+
+  refresh();
+}
+
+// =======================================
+// PARENT SIMULATION
+// =======================================
+
+const parentFirstNames = [
+  "Jennifer", "Michael", "Angela",
+  "David", "Melissa", "Robert",
+  "Nicole", "Daniel", "Sarah",
+  "Christopher", "Amanda", "Jessica"
+];
+
+function parentName(student) {
+  const index =
+    Math.abs(
+      [...String(student.id)].reduce(
+        (sum, ch) => sum + ch.charCodeAt(0),
+        0
+      )
+    ) % parentFirstNames.length;
+
+  const last =
+    student.name.split(" ").slice(-1)[0];
+
+  return `${parentFirstNames[index]} ${last}`;
+}
+
+function parentMessageFor(student) {
+  const classes = enrolledClasses(student.id);
+
+  let missing = 0;
+  let graded = 0;
+
+  classes.forEach(c => {
+    publishedWork(c).forEach(work => {
+      const status = statusOf(c, work, student.id);
+
+      if (status === "missing") missing++;
+      if (status === "graded") graded++;
+    });
+  });
+
+  if (missing > 0) {
+    return (
+      `Hello, I noticed ${student.name} has ` +
+      `${missing} missing assignment(s). ` +
+      "Could you tell me what needs to be completed?"
+    );
+  }
+
+  if (graded > 0) {
+    return (
+      `Good afternoon. I wanted to check on ` +
+      `${student.name}'s progress in class. ` +
+      "Is there anything we should work on at home?"
+    );
+  }
+
+  return (
+    `Hello, I'm checking in about ` +
+    `${student.name}. How has school been going?`
+  );
+}
+
+function generateParentMessages() {
+  const data = simulation();
+
+  const students = studentData().filter(
+    s => enrolledClasses(s.id).length
+  );
+
+  if (!students.length) {
+    notify("Add students to classes first.");
+    return;
+  }
+
+  const count = Math.min(
+    3,
+    students.length
+  );
+
+  for (let i = 0; i < count; i++) {
+    const student =
+      students[
+        Math.floor(Math.random() * students.length)
+      ];
+
+    data.messages.push({
+      id:
+        "msg_" +
+        Date.now() +
+        "_" +
+        Math.random().toString(36).slice(2),
+      studentId: student.id,
+      parent: parentName(student),
+      text: parentMessageFor(student),
+      date: new Date().toISOString(),
+      replies: []
+    });
+  }
+
+  save(SIMK, data);
+
+  logActivity(
+    `${count} new parent messages received.`
+  );
+
+  notify(`${count} parent messages received.`);
+  refresh();
+}
+
+function sendParentReply(messageId, text) {
+  if (!text.trim()) return;
+
+  const data = simulation();
+
+  const message = data.messages.find(
+    m => m.id === messageId
+  );
+
+  if (!message) return;
+
+  message.replies ||= [];
+
+  message.replies.push({
+    sender: "teacher",
+    text: text.trim(),
+    date: new Date().toISOString()
+  });
+
+  // A simple fictional follow-up response.
+  const replies = [
+    "Thank you for the update. I appreciate your help.",
+    "Thank you! I'll speak with my child about this.",
+    "I appreciate you taking the time to respond.",
+    "That sounds good. Please keep me updated."
+  ];
+
+  message.replies.push({
+    sender: "parent",
+    text: replies[
+      Math.floor(Math.random() * replies.length)
+    ],
+    date: new Date().toISOString()
+  });
+
+  save(SIMK, data);
+
+  logActivity(
+    `Replied to ${message.parent}.`
+  );
+
+  notify("Reply sent.");
+  renderParents();
+}
+
+// =======================================
+// OVERVIEW
+// =======================================
+
+function renderOverview() {
+  const classes = classroom().classes;
+  const students = new Set();
+
+  let submitted = 0;
+  let missing = 0;
+  let graded = 0;
+
+  classes.forEach(c => {
+    (c.students || []).forEach(id =>
+      students.add(String(id))
+    );
+
+    publishedWork(c).forEach(work => {
+      (c.students || []).forEach(id => {
+        const status = statusOf(c, work, id);
+
+        if (status === "submitted" ||
+            status === "late") submitted++;
+
+        if (status === "missing") missing++;
+        if (status === "graded") graded++;
+      });
+    });
+  });
+
+  const stats = [
+    ["Students", students.size],
+    ["Classes", classes.length],
+    ["To Grade", submitted],
+    ["Missing Work", missing],
+    ["Graded", graded],
+    ["Parent Messages", simulation().messages.length]
+  ];
+
+  $("stats").innerHTML = stats.map(([label, value]) => `
+    <div class="stat">
+      ${esc(label)}
+      <strong>${value}</strong>
+    </div>
+  `).join("");
+
+  const activity = simulation().activity;
+
+  $("recentActivity").innerHTML = activity.length
+    ? activity.slice(0, 10).map(a => `
+        <div class="item">
+          ${esc(a.message)}
+          <p class="muted">
+            ${new Date(a.date).toLocaleString()}
+          </p>
+        </div>
+      `).join("")
+    : '<p class="muted">No activity yet.</p>';
+}
+
+// =======================================
+// STUDENT DIRECTORY
+// =======================================
+
+function renderStudents() {
+  const students = studentData();
+
+  $("studentRows").innerHTML = students.length
+    ? students.map(s => `
+      <tr>
+        <td>${esc(s.id)}</td>
+        <td>${esc(s.name)}</td>
+        <td>${esc(s.grade || 7)}</td>
+        <td>${enrolledClasses(s.id).length}</td>
+      </tr>
+    `).join("")
+    : `
+      <tr>
+        <td colspan="4">
+          No simulated students yet.
+        </td>
+      </tr>
+    `;
+}
+
+// =======================================
+// STUDENT WORK
+// =======================================
+
+function renderSubmissions() {
+  const classes = classroom().classes;
+  const classSelect = $("submissionClass");
+
+  const previous = classSelect.value;
+
+  classSelect.innerHTML = `
+    <option value="all">All Classes</option>
+    ${classes.map(c => `
+      <option value="${esc(c.id)}">
+        ${esc(c.name)} — ${esc(c.section)}
+      </option>
+    `).join("")}
+  `;
+
+  classSelect.value =
+    [...classSelect.options].some(
+      option => option.value === previous
+    )
+      ? previous
+      : "all";
+
+  const selectedClass = classSelect.value;
+  const selectedStatus = $("submissionStatus").value;
+
+  const rows = [];
+
+  classes.forEach(c => {
+    if (
+      selectedClass !== "all" &&
+      c.id !== selectedClass
+    ) {
+      return;
+    }
+
+    publishedWork(c).forEach(work => {
+      (c.students || []).forEach(studentId => {
+        const status = statusOf(
+          c,
+          work,
+          studentId
+        );
+
+        if (
+          selectedStatus !== "all" &&
+          status !== selectedStatus
+        ) {
+          return;
+        }
+
+        rows.push({
+          c,
+          work,
+          student: getStudent(studentId),
+          status
+        });
+      });
+    });
+  });
+
+  $("submissionList").innerHTML = rows.length
+    ? `
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Class</th>
+              <th>Assignment</th>
+              <th>Status</th>
+              <th>Grade</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            ${rows.map(r => `
+              <tr>
+                <td>${esc(r.student.name)}</td>
+                <td>${esc(r.c.name)}</td>
+                <td>${esc(r.work.title)}</td>
+                <td>
+                  <span class="tag ${
+                    r.status === "graded"
+                      ? "green"
+                      : r.status === "missing"
+                        ? "red"
+                        : "yellow"
+                  }">
+                    ${esc(r.status)}
+                  </span>
+                </td>
+                <td>
+                  ${
+                    r.work.grades?.[r.student.id] ??
+                    "—"
+                  }
+                  / ${Number(r.work.points) || 0}
+                </td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    `
+    : `
+      <p class="muted">
+        No assignments match these filters.
+      </p>
+    `;
+}
+
+// =======================================
+// PARENT INBOX
+// =======================================
+
+function renderParents() {
+  const messages = [...simulation().messages].reverse();
+
+  $("parentMessages").innerHTML = messages.length
+    ? messages.map(m => `
+      <div class="item">
+        <h3>${esc(m.parent)}</h3>
+
+        <p class="muted">
+          Parent of
+          ${esc(getStudent(m.studentId).name)}
+        </p>
+
+        <div class="message parent">
+          ${esc(m.text)}
+        </div>
+
+        ${(m.replies || []).map(r => `
+          <div class="message ${esc(r.sender)}">
+            <strong>
+              ${r.sender === "teacher"
+                ? "You (Teacher)"
+                : "Parent"}
+            </strong>
+
+            <p>${esc(r.text)}</p>
+          </div>
+        `).join("")}
+
+        <textarea
+          id="reply-${esc(m.id)}"
+          placeholder="Write a response to this parent..."
+        ></textarea>
+
+        <button
+          class="primary"
+          data-reply="${esc(m.id)}"
+        >
+          Send Reply
+        </button>
+      </div>
+    `).join("")
+    : `
+      <p class="muted">
+        No parent messages yet.
+        Generate some to start a conversation.
+      </p>
+    `;
+
+  document
+    .querySelectorAll("[data-reply]")
+    .forEach(button => {
+      button.onclick = () => {
+        const id = button.dataset.reply;
+        const input = document.getElementById(
+          `reply-${id}`
+        );
+
+        sendParentReply(id, input.value);
+      };
+    });
+}
+
+// =======================================
+// REPORT CARDS
+// =======================================
+
+function renderReports() {
+  const students = studentData();
+  const selector = $("reportStudent");
+  const previous = selector.value;
+
+  selector.innerHTML = students.map(s => `
+    <option value="${esc(s.id)}">
+      ${esc(s.name)}
+    </option>
+  `).join("");
+
+  if (students.some(s => s.id === previous)) {
+    selector.value = previous;
+  }
+
+  const student = students.find(
+    s => s.id === selector.value
+  );
+
+  if (!student) {
+    $("reportContent").innerHTML =
+      "<p>No students available.</p>";
+
+    return;
+  }
+
+  const period = $("reportPeriod").value;
+  const classes = enrolledClasses(student.id);
+
+  $("reportContent").innerHTML = `
+    <div class="flex-between">
+      <div>
+        <h2>${esc(student.name)}</h2>
+
+        <p class="muted">
+          Student ID: ${esc(student.id)}
+          · Grade ${esc(student.grade || 7)}
+          · ${esc(period)}
+        </p>
+      </div>
+
+      <span class="tag">
+        Riverside Middle School
+      </span>
+    </div>
+
+    <div class="report-grid">
+
+      ${classes.map(c => {
+        const works = publishedWork(c).filter(
+          work =>
+            period === "all" ||
+            markingPeriod(work) === period
+        );
+
+        const average = percentage(
+          works,
+          student.id
+        );
+
+        const count = works.filter(
+          w =>
+            w.grades?.[student.id] !== undefined &&
+            w.grades?.[student.id] !== null &&
+            w.grades?.[student.id] !== ""
+        ).length;
+
+        return `
+          <div class="report-course">
+
+            <div class="top">
+              <strong>${esc(c.name)}</strong>
+
+              <div>
+                ${esc(c.section || "")}
+              </div>
+            </div>
+
+            <div class="bottom">
+              <div class="report-grade">
+                ${letter(average)}
+              </div>
+
+              <p>
+                ${
+                  average === null
+                    ? "Not Graded"
+                    : average.toFixed(1) + "%"
+                }
+              </p>
+
+              <p class="muted">
+                ${count} graded assignment(s)
+              </p>
+            </div>
+
+          </div>
+        `;
+      }).join("")}
+
+    </div>
+
+    ${
+      classes.length
+        ? ""
+        : `
+          <p class="muted">
+            This student is not enrolled
+            in any Classroom classes.
+          </p>
+        `
+    }
+  `;
+}
+
+// =======================================
+// SETTINGS
+// =======================================
+
+function renderSettings() {
+  $("autoSimulation").checked =
+    Boolean(simulation().settings.auto);
+}
+
+// =======================================
+// REFRESH
+// =======================================
+
+function refresh() {
+  renderOverview();
+  renderStudents();
+  renderSubmissions();
+  renderParents();
+  renderReports();
+  renderSettings();
+}
+
+// =======================================
+// NAVIGATION
+// =======================================
+
+document.querySelectorAll("nav button").forEach(
+  button => {
+    button.onclick = () => {
+      document
+        .querySelectorAll("nav button")
+        .forEach(b => b.classList.remove("active"));
+
+      document
+        .querySelectorAll(".page")
+        .forEach(p => p.classList.remove("active"));
+
+      button.classList.add("active");
+
+      $(button.dataset.page).classList.add("active");
+
+      refresh();
+    };
+  }
+);
+
+// =======================================
+// BUTTONS
+// =======================================
+
+$("fillClasses").onclick = fillClasses;
+
+$("runSimulation").onclick =
+  runStudentSimulation;
+
+$("simulateParents").onclick =
+  generateParentMessages;
+
+$("newParentMessages").onclick =
+  generateParentMessages;
+
+$("refreshAll").onclick = () => {
+  refresh();
+  notify("Simulation refreshed.");
+};
+
+$("submissionClass").onchange =
+  renderSubmissions;
+
+$("submissionStatus").onchange =
+  renderSubmissions;
+
+$("reportStudent").onchange =
+  renderReports;
+
+$("reportPeriod").onchange =
+  renderReports;
+
+$("printReport").onclick = () =>
+  window.print();
+
+$("autoSimulation").onchange = event => {
+  const data = simulation();
+
+  data.settings.auto = event.target.checked;
+
+  save(SIMK, data);
+
+  notify(
+    data.settings.auto
+      ? "Automatic simulation enabled."
+      : "Automatic simulation disabled."
+  );
+};
+
+$("clearSimulation").onclick = () => {
+  if (!confirm(
+    "Reset simulated submissions and parent messages?"
+  )) {
+    return;
+  }
+
+  save(SIMK, {
+    submissions: {},
+    missing: {},
+    messages: [],
+    activity: [],
+    settings: { auto: false }
+  });
+
+  refresh();
+  notify("Simulation activity reset.");
+};
+
+// =======================================
+// AUTOMATIC ACTIVITY
+// =======================================
+
+setInterval(() => {
+  if (simulation().settings.auto) {
+    runStudentSimulation();
+  }
+}, 60000);
+
+// Refresh when another browser tab saves.
+window.addEventListener("storage", event => {
+  if ([CK, SK, SIMK].includes(event.key)) {
+    refresh();
+  }
+});
+
+// =======================================
+// START
+// =======================================
+
+refresh();
+
+</script>
+
+</body>
+</html>
