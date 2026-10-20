@@ -1,0 +1,71 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parent Communication Center | Riverside Middle School</title>
+  <link rel="stylesheet" href="parents.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <h1>Riverside Middle School</h1>
+      <p>Parent Communication Center</p>
+    </div>
+    <a href="index.html" class="back-link">Teacher Dashboard</a>
+  </header>
+
+  <main class="layout">
+    <aside class="sidebar">
+      <h2>Parent Inbox</h2>
+      <p class="muted">Manage conversations with students' families.</p>
+      <div id="conversationList" class="conversation-list"></div>
+      <button id="newConversationBtn" class="secondary-button">
+        + New Conversation
+      </button>
+    </aside>
+
+    <section class="workspace">
+      <div class="page-heading">
+        <div>
+          <p class="eyebrow">FAMILY ENGAGEMENT</p>
+          <h2 id="conversationTitle">Select a conversation</h2>
+          <p id="conversationSubtitle" class="muted">
+            Choose a parent from the inbox to get started.
+          </p>
+        </div>
+        <span class="status-pill">Simulation</span>
+      </div>
+
+      <div id="studentSummary" class="student-summary">
+        Select a conversation to view student information.
+      </div>
+
+      <div id="messageArea" class="message-area">
+        <div class="empty-state">
+          <div class="empty-icon">✉</div>
+          <h3>No conversation selected</h3>
+          <p>Choose a conversation or start a new one.</p>
+        </div>
+      </div>
+
+      <form id="messageForm" class="message-form">
+        <label for="messageInput">Message to parent</label>
+        <textarea
+          id="messageInput"
+          placeholder="Write a message to the parent..."
+          rows="3"
+          required
+        ></textarea>
+        <div class="composer-footer">
+          <p>Parent replies are simulated using matching sentence patterns.</p>
+          <button type="submit" id="sendButton">Send Message</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <script src="parents.js"></script>
+</body>
+</html>
