@@ -1,5 +1,90 @@
 
 document.addEventListener("DOMContentLoaded", () => {
+    // ==========================================
+    // TEACHER PROFILE — SAVE AND LOAD
+    // ==========================================
+    const teacherName = document.getElementById("teacherName");
+    const teacherSubject = document.getElementById("teacherSubject");
+    const teacherGrade = document.getElementById("teacherGrade");
+    const saveProfileButton = document.getElementById("saveTeacher");
+    const profileMessage = document.getElementById("profileMessage");
+
+    function showProfileMessage(message) {
+        if (profileMessage) {
+            profileMessage.textContent = message;
+        } else {
+            alert(message);
+        }
+    }
+
+    function loadTeacherProfile() {
+        if (!teacherName || !teacherSubject || !teacherGrade) return;
+
+        try {
+            const savedProfile = localStorage.getItem("teacherProfile");
+
+            if (!savedProfile) return;
+
+            const profile = JSON.parse(savedProfile);
+
+            teacherName.value = profile.name || "";
+            teacherSubject.value = profile.subject || "Mathematics";
+            teacherGrade.value = profile.grade || "6th Grade";
+        } catch (error) {
+            console.error("Unable to load teacher profile:", error);
+            showProfileMessage("Could not load your profile. Please try saving it again.");
+        }
+    }
+
+    function saveTeacherProfile(event) {
+        if (event) event.preventDefault();
+
+        if (!teacherName || !teacherSubject || !teacherGrade) {
+            showProfileMessage("The teacher profile fields could not be found.");
+            return;
+        }
+
+        const name = teacherName.value.trim();
+
+        if (!name) {
+            showProfileMessage("Please enter your teacher name.");
+            teacherName.focus();
+            return;
+        }
+
+        const profile = {
+            name: name,
+            subject: teacherSubject.value,
+            grade: teacherGrade.value
+        };
+
+        try {
+            localStorage.setItem("teacherProfile", JSON.stringify(profile));
+
+            // Confirm that the saved profile can be read back.
+            const check = JSON.parse(localStorage.getItem("teacherProfile"));
+
+            if (check && check.name === name) {
+                showProfileMessage("Teacher profile saved successfully!");
+            } else {
+                showProfileMessage("We couldn't verify your saved profile. Please try again.");
+            }
+        } catch (error) {
+            console.error("Unable to save teacher profile:", error);
+            showProfileMessage("Profile saving failed. Check your browser storage settings.");
+        }
+    }
+
+    if (saveProfileButton) {
+        saveProfileButton.addEventListener("click", saveTeacherProfile);
+    }
+
+    loadTeacherProfile();
+
+
+    // ==========================================
+    // SCHOOL DAY SIMULATION CLOCK
+    // ==========================================
     const startButton = document.getElementById("startSchoolDay");
     const status = document.getElementById("schoolDayStatus");
     const schoolSection = document.getElementById("schoolDay");
@@ -68,6 +153,12 @@ document.addEventListener("DOMContentLoaded", () => {
         return activity;
     }
 
+    function stopClock() {
+        running = false;
+        clearInterval(timer);
+        timer = null;
+    }
+
     function updateDisplay() {
         clockDisplay.textContent = formatTime(currentMinutes);
 
@@ -79,12 +170,6 @@ document.addEventListener("DOMContentLoaded", () => {
             status.textContent = "School Day Complete — Teacher Dismissal";
             stopClock();
         }
-    }
-
-    function stopClock() {
-        running = false;
-        clearInterval(timer);
-        timer = null;
     }
 
     function startClock() {
