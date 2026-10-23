@@ -3,6 +3,77 @@ document.addEventListener("DOMContentLoaded", () => {
   "use strict";
 
   const KEY = "schoolRP_classroom_v1";
+  
+const PARENT_STUDENT_KEY = "riverside_ai_students_v1";
+
+const EXTRA_FIRST_NAMES = [
+  "Sam", "Peyton", "Emerson", "Rowan", "Skyler",
+  "Finley", "Charlie", "Blake", "Drew", "Reagan",
+  "Kendall", "Harper", "Logan", "Micah", "Sage",
+  "Adrian", "Ellis", "Jesse", "Remy", "Shiloh",
+  "Robin", "Frankie", "Lennon", "Ari", "Marley",
+  "River", "Cory", "Jamie", "Phoenix", "Bailey"
+];
+
+const EXTRA_LAST_NAMES = [
+  "Anderson", "Thomas", "Jackson", "White", "Harris",
+  "Martin", "Garcia", "Clark", "Lewis", "Walker",
+  "Hall", "Allen", "Young", "King", "Wright",
+  "Scott", "Green", "Baker", "Adams", "Nelson",
+  "Hill", "Campbell", "Mitchell", "Roberts", "Carter",
+  "Phillips", "Evans", "Turner", "Torres", "Collins"
+];
+
+function buildStudentRoster() {
+  const roster = readJSON(PARENT_STUDENT_KEY, []);
+  const allStudents = Array.isArray(roster) ? roster : [];
+  const knownIds = new Set([
+    ...students.map(s => String(s.id)),
+    ...allStudents.map(s => String(s.id))
+  ]);
+
+  for (let i = 0; i < 120; i++) {
+    const studentId = String(10001 + i);
+
+    if (knownIds.has(studentId)) continue;
+
+    const student = {
+      id: studentId,
+      name: `${EXTRA_FIRST_NAMES[i % EXTRA_FIRST_NAMES.length]} ${
+        EXTRA_LAST_NAMES[
+          Math.floor(i / EXTRA_FIRST_NAMES.length) %
+          EXTRA_LAST_NAMES.length
+        ]
+      }`,
+      grade: 7
+    };
+
+    students.push(student);
+    knownIds.add(studentId);
+  }
+
+  const merged = new Map();
+
+  [...allStudents, ...students].forEach(student => {
+    if (student && student.id != null) {
+      merged.set(String(student.id), {
+        id: String(student.id),
+        name: student.name || "Student",
+        grade: student.grade ?? 7
+      });
+    }
+  });
+
+  try {
+    localStorage.setItem(
+      PARENT_STUDENT_KEY,
+      JSON.stringify([...merged.values()])
+    );
+  } catch (error) {
+    console.error("Could not sync student roster:", error);
+  }
+}
+
   const PERIODS = [1, 2, 3, 4, 6, 7];
 
   const $ = id => document.getElementById(id);
